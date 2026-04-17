@@ -822,7 +822,7 @@ async function sendPushNotification(data) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer sb_publishable_S3tw2CoRQIb10pi8QHHspQ_YcxYDVR6',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdleWdrYmtvcHB3eXFpcWJ4YWx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMDE4NTAsImV4cCI6MjA5MTc3Nzg1MH0.qj961IhHGG8lQKxEWuPhLX98Qu4iI_Yyr_BEYddvaGQ',
       },
       body: JSON.stringify(data),
     });
@@ -1851,7 +1851,7 @@ async function registerSW() {
 function boot() {
   /* 接続情報をHTMLに直接埋め込み（デモ用） */
   const SUPABASE_URL = 'https://geygkbkoppwyqiqbxalz.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_S3tw2CoRQIb10pi8QHHspQ_YcxYDVR6';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdleWdrYmtvcHB3eXFpcWJ4YWx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMDE4NTAsImV4cCI6MjA5MTc3Nzg1MH0.qj961IhHGG8lQKxEWuPhLX98Qu4iI_Yyr_BEYddvaGQ';
 
   /* SDK読み込み確認 */
   if(!window.supabase) {
