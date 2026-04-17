@@ -450,25 +450,48 @@ async function loadAll() {
 
 function subscribeRealtime() {
   if(!SB) return;
+  /* 既存チャンネルを削除してから再購読 */
+  SB.removeAllChannels();
   SB.channel('er-feed-changes')
     .on('postgres_changes', {event:'*', schema:'public', table:'patients'},
-      payload => {
-        handleDbChange('patients', payload);
-      })
+      payload => { handleDbChange('patients', payload); })
     .on('postgres_changes', {event:'*', schema:'public', table:'posts'},
-      payload => {
-        handleDbChange('posts', payload);
-      })
+      payload => { handleDbChange('posts', payload); })
     .on('postgres_changes', {event:'*', schema:'public', table:'notifications'},
-      payload => {
-        handleDbChange('notifications', payload);
-      })
+      payload => { handleDbChange('notifications', payload); })
     .subscribe(status => {
       if(status === 'SUBSCRIBED') updateRtStatus('live');
-      else if(status === 'CHANNEL_ERROR') updateRtStatus('offline');
+      else if(status === 'CHANNEL_ERROR') { updateRtStatus('offline'); scheduleReconnect(); }
       else updateRtStatus('connecting');
     });
 }
+
+/* 再接続スケジューラー */
+let _reconnectTimer = null;
+function scheduleReconnect() {
+  if(_reconnectTimer) return;
+  _reconnectTimer = setTimeout(function() {
+    _reconnectTimer = null;
+    if(S.user && SB) subscribeRealtime();
+  }, 3000);
+}
+
+/* バックグラウンド復帰時に再接続＋データ再取得 */
+document.addEventListener('visibilitychange', function() {
+  if(document.visibilityState === 'visible' && S.user && SB) {
+    /* 接続状態を確認して切れていれば再接続 */
+    const channels = SB.getChannels();
+    const isLive = channels.some(function(c) {
+      return c.state === 'joined';
+    });
+    if(!isLive) {
+      console.log('[RT] 復帰検知 → 再接続');
+      subscribeRealtime();
+    }
+    /* 最新データを再取得 */
+    loadAll().then(function() { render(); });
+  }
+});
 
 function handleDbChange(table, payload) {
   const arr = table === 'patients' ? S.patients : table === 'posts' ? S.posts : S.notifs;
