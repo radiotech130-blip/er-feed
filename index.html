@@ -466,6 +466,15 @@ function subscribeRealtime() {
     });
 }
 
+/* 手動リロード */
+async function manualReload() {
+  if(!S.user || !SB) return;
+  showToast('更新中...');
+  await loadAll();
+  subscribeRealtime();
+  render();
+}
+
 /* 再接続スケジューラー */
 let _reconnectTimer = null;
 function scheduleReconnect() {
@@ -477,19 +486,19 @@ function scheduleReconnect() {
 }
 
 /* バックグラウンド復帰時に再接続＋データ再取得 */
+let _lastVisible = Date.now();
 document.addEventListener('visibilitychange', function() {
   if(document.visibilityState === 'visible' && S.user && SB) {
-    /* 接続状態を確認して切れていれば再接続 */
-    const channels = SB.getChannels();
-    const isLive = channels.some(function(c) {
-      return c.state === 'joined';
-    });
-    if(!isLive) {
-      console.log('[RT] 復帰検知 → 再接続');
+    const away = Date.now() - _lastVisible;
+    console.log('[RT] 復帰 離席時間:', Math.round(away/1000) + '秒');
+    /* 5秒以上バックグラウンドにいた場合は必ず再取得 */
+    if(away > 5000) {
       subscribeRealtime();
+      loadAll().then(function() { render(); });
     }
-    /* 最新データを再取得 */
-    loadAll().then(function() { render(); });
+  }
+  if(document.visibilityState === 'hidden') {
+    _lastVisible = Date.now();
   }
 });
 
@@ -1756,6 +1765,7 @@ create policy "allow all" on notifications for all using (true) with check (true
   <div class="topbar">
     <span class="topbar-title">ER Feed</span>
     <div style="display:flex;align-items:center;gap:6px;">
+      <button onclick="manualReload()" style="background:none;border:none;padding:4px 6px;cursor:pointer;color:var(--color-text-secondary);font-size:18px;line-height:1;" title="更新">↻</button>
       <span class="notif-badge" onclick="goNotifs()" style="cursor:pointer;">${n>0?n:'✓'}</span>
       <div style="background:#f2f2f7;border-radius:8px;padding:5px 11px;font-size:12px;color:#3c3c43;cursor:pointer;display:flex;align-items:center;gap:4px;" onclick="S._showFilter=!S._showFilter;render()">
         ${filterLabel} <span style="font-size:10px;">▾</span>
