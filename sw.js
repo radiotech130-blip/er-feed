@@ -3,7 +3,7 @@ const CACHE_NAME = 'er-feed-v1';
 const SUPABASE_URL = 'https://kgcpfjplwxgqhxoohxsl.supabase.co';
 
 /* ── キャッシュするファイル ── */
-const CACHE_FILES = ['/', '/index.html', '/manifest.json'];
+const CACHE_FILES = ['./', './index.html', './manifest.json', './sw.js', './icon-192.png'];
 
 /* インストール時にキャッシュ */
 self.addEventListener('install', function(e) {
