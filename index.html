@@ -402,7 +402,7 @@ const S = {
   ntab: 'すべて',
   selPt: null,
   sheet: false, shPid: null, shAct: null, shActs: [], shMen: [], shMemo: '', shVitals: {sbp:'',dbp:'',hr:'',spo2:'',temp:'',gcs:''}, editingPostId: null,
-  ptTab: '全患者', showUnread: null, selectingPatient: false, selectedPtId: null,
+  ptTab: '全患者', showUnread: null, selectingPatient: false, selectedPtId: null, _submitting: false,
   nf: {complaint:'',complaintOther:'',age:'',sex:'',arrivalTime:'',urgency:'',jcs:'',jcsNote:'',transport:'',procs:[],tags:[],ndepts:['ERスタッフ','当直医'],chartId:''},
   /* ローカルキャッシュ（Supabaseから取得） */
   patients: [],
@@ -740,8 +740,10 @@ async function deletePost(postId) {
   showToast('投稿を取り消しました');
 }
 async function submitPost() {
+  if(S._submitting) return;  /* 二重送信防止 */
   if(!S.shActs.length) { alert('アクションを選択してください'); return; }
   if(!SB) { showToast('DB未接続です'); return; }
+  S._submitting = true;
   const act = ALL_ACTIONS.find(a => a.label === S.shActs[0]);
   const tagLabel = S.shActs.join(' / ');
   const v = S.shVitals;
@@ -798,6 +800,7 @@ async function submitPost() {
     S.posts.unshift(saved);
   }
   S.sheet = false; S.shAct = null; S.shActs = []; S.shMen = []; S.shMemo = ''; S.shVitals = {sbp:'',dbp:'',hr:'',spo2:'',temp:'',gcs:''}; S.editingPostId = null;
+  S._submitting = false;
   showToast('投稿しました');
   render();
   /* Push通知をEdge Functionに依頼 */
@@ -832,11 +835,13 @@ async function sendPushNotification(data) {
 }
 
 async function submitNew() {
+  if(S._submitting) return;  /* 二重送信防止 */
   const f = S.nf;
   const finalComplaint = f.complaintOther.trim() || f.complaint.trim();
   if(!finalComplaint) { alert('主訴を選択または入力してください'); return; }
   if(!f.age.trim())   { alert('年代を選択してください'); return; }
   if(!SB) { showToast('DB未接続です'); return; }
+  S._submitting = true;
   const u = S.user;
   const now = new Date().toISOString();
   const urgLabel = {'最優先':'🔴最優先','緊急':'🟠緊急','準緊急':'🟡準緊急','安定':'🟢安定'};
@@ -908,6 +913,7 @@ async function submitNew() {
   if(!S.posts.find(p => p.id === savedPost.id)) S.posts.unshift(savedPost);
 
   S.nf = {complaint:'',complaintOther:'',age:'',sex:'',arrivalTime:'',urgency:'',jcs:'',jcsNote:'',transport:'',procs:[],tags:[],ndepts:['ERスタッフ','当直医'],chartId:''};
+  S._submitting = false;
   showToast('搬送前通知を送信しました');
   /* 搬送前通知のPush */
   if(savedPost) {
@@ -1409,7 +1415,7 @@ function sheetHTML(pid) {
       </div>` : ''}
       <div class="f-label" style="margin-bottom:8px;">補足メモ（任意）</div>
       <textarea class="form-input" placeholder="例：造影CTお願いします" oninput="S.shMemo=this.value">${esc(S.shMemo)}</textarea>
-      <button class="btn btn-primary btn-full" style="margin-top:14px;" onclick="submitPost()">投稿して通知する</button>
+      <button class="btn btn-primary btn-full" style="margin-top:14px;${S._submitting?'opacity:.5;pointer-events:none;':''}" onclick="submitPost()">${S._submitting?'送信中...':'投稿して通知する'}</button>
     </div>
   </div>`;
 }
