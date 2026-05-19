@@ -1915,8 +1915,14 @@ async function updatePassword(newPassword) {
   if(error) {
     showToast('エラー: ' + error.message);
   } else {
-    showToast('パスワードを設定しました。ログインしてください。');
+    /* パスワード設定完了 → サインアウトしてログイン画面へ */
+    await SB.auth.signOut();
     S.authScreen = 'login';
+    S.authUser = null;
+    S.user = null;
+    /* URLのハッシュをクリア */
+    history.replaceState(null, '', window.location.pathname);
+    showToast('パスワードを設定しました。ログインしてください。');
     render();
   }
 }
@@ -2030,29 +2036,50 @@ function boot() {
 
   /* Auth状態を監視（招待リンクからのパスワード設定対応） */
   if(SB) {
-    /* URLにアクセストークンが含まれている場合（招待リンク） */
-    const hash = window.location.hash;
-    if(hash.includes('type=invite') || hash.includes('type=recovery')) {
-      S.authScreen = 'setPassword';
-      render();
-      return;
-    }
+    /* Auth状態変化の監視（招待・パスワードリセット・通常ログインをすべてここで処理） */
+    SB.auth.onAuthStateChange(function(event, session) {
+      console.log('[Auth] event:', event);
+      if(event === 'PASSWORD_RECOVERY') {
+        /* パスワードリセットリンクから来た場合 */
+        S.authScreen = 'setPassword';
+        render();
+      } else if(event === 'SIGNED_IN' && session) {
+        /* 招待リンク・通常ログイン共通 */
+        const hash = window.location.hash;
+        if(hash.includes('type=invite')) {
+          /* 招待リンクから来た場合はパスワード設定画面へ */
+          S.authScreen = 'setPassword';
+          S.authUser = session.user;
+          render();
+        } else if(!S.user) {
+          onSignedIn(session.user);
+        }
+      } else if(event === 'SIGNED_OUT') {
+        S.user = null; S.authUser = null; S.screen = 'login';
+        S.authScreen = 'login';
+        render();
+      } else if(event === 'USER_UPDATED') {
+        /* パスワード更新完了後 */
+        if(S.authScreen === 'setPassword') {
+          S.authScreen = 'login';
+          S.user = null;
+          render();
+        }
+      }
+    });
     /* 既存セッションの確認 */
     SB.auth.getSession().then(function(res) {
       if(res.data.session) {
-        onSignedIn(res.data.session.user);
+        const hash = window.location.hash;
+        if(hash.includes('type=invite')) {
+          S.authScreen = 'setPassword';
+          S.authUser = res.data.session.user;
+          render();
+        } else {
+          onSignedIn(res.data.session.user);
+        }
       } else {
         render();
-      }
-    });
-    /* Auth状態変化の監視 */
-    SB.auth.onAuthStateChange(function(event, session) {
-      if(event === 'SIGNED_IN' && session && !S.user) {
-        onSignedIn(session.user);
-      } else if(event === 'SIGNED_OUT') {
-        S.user = null; S.authUser = null; S.screen = 'login'; render();
-      } else if(event === 'PASSWORD_RECOVERY') {
-        S.authScreen = 'setPassword'; render();
       }
     });
   } else {
