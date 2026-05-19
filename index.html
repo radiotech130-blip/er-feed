@@ -397,7 +397,9 @@ const TAGS  = ['感染症疑い','嘔吐','意識障害','けいれん','暴力�
 /* ---------- App State ---------- */
 const S = {
   user: null,
+  authUser: null,      /* Supabase Auth のユーザーオブジェクト */
   screen: 'login',
+  authScreen: 'login', /* login | forgot | loading */
   tab: '全患者',
   ntab: 'すべて',
   selPt: null,
@@ -601,12 +603,7 @@ function login(uid) {
     registerPush(S.user.id);
   });
 }
-function logout() {
-  if(SB) { SB.removeAllChannels(); }
-  S.user = null; S.screen = 'login'; S.dbReady = false;
-  updateRtStatus('connecting');
-  render();
-}
+function logout() { signOut(); }
 async function ack(postId) {
   const p = S.posts.find(p => p.id === postId);
   if(!p) return;
@@ -1516,13 +1513,24 @@ create policy "allow all" on notifications for all using (true) with check (true
       ${connected
         ? `<div style="background:#dcfce7;color:#166534;border-radius:10px;padding:8px 14px;font-size:12px;width:100%;text-align:center;margin-bottom:16px;">✓ Supabase 接続済み</div>`
         : `<div class="login-notice">⚠ DB未設定 — <span style="text-decoration:underline;cursor:pointer;" onclick="goSetup()">Supabase設定</span> をしてからログインしてください</div>`}
-      <div class="user-grid">
-        ${USERS.map(u=>`<div class="user-tile" onclick="login('${u.id}')">
-          <div class="user-tile-icon ${u.avCls}">${u.icon}</div>
-          <div class="user-tile-name">${esc(u.name)}</div>
-          <div class="user-tile-role">${esc(u.roleLabel)}</div>
-          <div class="user-tile-role">${esc(u.dept)}</div>
-        </div>`).join('')}
+      <div style="width:100%;max-width:360px;margin-top:8px;">
+        <div style="margin-bottom:10px;">
+          <label style="font-size:12px;color:var(--color-text-secondary);font-weight:500;display:block;margin-bottom:5px;">メールアドレス</label>
+          <input id="login-email" type="email" placeholder="staff@hospital.jp" class="form-input"
+            onkeydown="if(event.key==='Enter')document.getElementById('login-password').focus()">
+        </div>
+        <div style="margin-bottom:6px;">
+          <label style="font-size:12px;color:var(--color-text-secondary);font-weight:500;display:block;margin-bottom:5px;">パスワード</label>
+          <input id="login-password" type="password" placeholder="パスワード" class="form-input"
+            onkeydown="if(event.key==='Enter')signIn(document.getElementById('login-email').value,this.value)">
+        </div>
+        <div style="text-align:right;margin-bottom:16px;">
+          <span style="font-size:12px;color:#007aff;cursor:pointer;" onclick="S.authScreen='forgot';render()">パスワードを忘れた方</span>
+        </div>
+        <button class="btn btn-primary btn-full" style="margin-bottom:10px;"
+          onclick="signIn(document.getElementById('login-email').value,document.getElementById('login-password').value)">
+          ログイン
+        </button>
       </div>
       <button class="btn" style="margin-top:16px;width:100%;" onclick="goSetup()">⚙ Supabase接続設定</button>
     </div>`;
@@ -1802,6 +1810,148 @@ setInterval(() => {
 }, 1000);
 
 /* ---------- Boot ---------- */
+/* =====================================================
+   Supabase Auth 認証関連
+===================================================== */
+
+/* メール・パスワードでログイン */
+async function signIn(email, password) {
+  if(!SB) return;
+  S.authScreen = 'loading';
+  render();
+  try {
+    const { data, error } = await SB.auth.signInWithPassword({ email, password });
+    if(error) {
+      S.authScreen = 'login';
+      render();
+      showToast('ログイン失敗: ' + (error.message === 'Invalid login credentials' ? 'メールアドレスまたはパスワードが違います' : error.message));
+      return;
+    }
+    await onSignedIn(data.user);
+  } catch(e) {
+    S.authScreen = 'login';
+    render();
+    showToast('接続エラーが発生しました');
+  }
+}
+
+/* パスワードリセットメール送信 */
+async function sendPasswordReset(email) {
+  if(!SB || !email) return;
+  const { error } = await SB.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname
+  });
+  if(error) {
+    showToast('エラー: ' + error.message);
+  } else {
+    showToast('パスワードリセットメールを送信しました');
+    S.authScreen = 'login';
+    render();
+  }
+}
+
+/* ログイン成功後の処理 */
+async function onSignedIn(authUser) {
+  S.authUser = authUser;
+  /* staffsテーブルからユーザー情報を取得 */
+  const { data: staff, error } = await SB
+    .from('staffs')
+    .select('*')
+    .eq('id', authUser.id)
+    .single();
+  if(error || !staff) {
+    showToast('スタッフ情報が見つかりません。管理者に連絡してください。');
+    await SB.auth.signOut();
+    S.authScreen = 'login';
+    render();
+    return;
+  }
+  if(!staff.is_active) {
+    showToast('このアカウントは無効化されています。管理者に連絡してください。');
+    await SB.auth.signOut();
+    S.authScreen = 'login';
+    render();
+    return;
+  }
+  /* USERS配列と同じ形式に変換 */
+  S.user = {
+    id:        staff.id,
+    name:      staff.name,
+    role:      staff.role,
+    dept:      staff.dept,
+    icon:      '👤',
+    avCls:     'avb',
+    roleLabel: staff.dept,
+    tabs:      ['全患者','自分の部署','要確認'],
+    canPost:   true,
+    canRegister: ['er_nurse','er_doctor','oncall'].includes(staff.role),
+    isAdmin:   staff.is_admin,
+  };
+  S.screen = 'feed';
+  S.authScreen = 'login';
+  render();
+  await loadAll();
+  subscribeRealtime();
+  registerPush(S.user.id);
+}
+
+/* ログアウト */
+async function signOut() {
+  if(SB) {
+    await SB.auth.signOut();
+    SB.removeAllChannels();
+  }
+  S.user = null;
+  S.authUser = null;
+  S.screen = 'login';
+  S.authScreen = 'login';
+  render();
+}
+
+/* パスワード更新（招待リンクから来た場合） */
+async function updatePassword(newPassword) {
+  if(!SB) return;
+  const { error } = await SB.auth.updateUser({ password: newPassword });
+  if(error) {
+    showToast('エラー: ' + error.message);
+  } else {
+    showToast('パスワードを設定しました。ログインしてください。');
+    S.authScreen = 'login';
+    render();
+  }
+}
+
+/* =====================================================
+   管理者機能：スタッフを招待
+===================================================== */
+async function inviteStaff(email, name, role, dept) {
+  if(!SB || !S.user?.isAdmin) return;
+  try {
+    /* Supabase Auth に招待 */
+    const res = await fetch('https://geygkbkoppwyqiqbxalz.supabase.co/auth/v1/invite', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdleWdrYmtvcHB3eXFpcWJ4YWx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMDE4NTAsImV4cCI6MjA5MTc3Nzg1MH0.qj961IhHGG8lQKxEWuPhLX98Qu4iI_Yyr_BEYddvaGQ',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdleWdrYmtvcHB3eXFpcWJ4YWx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMDE4NTAsImV4cCI6MjA5MTc3Nzg1MH0.qj961IhHGG8lQKxEWuPhLX98Qu4iI_Yyr_BEYddvaGQ',
+      },
+      body: JSON.stringify({ email })
+    });
+    const invited = await res.json();
+    if(invited.error) { showToast('招待エラー: ' + invited.error.message); return; }
+    /* staffsテーブルに情報を登録 */
+    await SB.from('staffs').insert({
+      id:   invited.id,
+      email, name, role, dept,
+      is_admin: false,
+      is_active: true,
+    });
+    showToast(name + ' さんに招待メールを送信しました');
+  } catch(e) {
+    showToast('招待エラー: ' + e.message);
+  }
+}
+
 /* VAPID公開鍵 */
 const VAPID_PUBLIC_KEY = 'BJOaaloV7jsS0fx_NC-_15JJRz-nhsp9Gz7sS51NRlX2WUeByGDi5KEQRgW6gksBsq_pZuhwEa9W8n5aerO5a_U';
 
@@ -1877,7 +2027,37 @@ function boot() {
   } else {
     updateRtStatus('offline');
   }
-  render();
+
+  /* Auth状態を監視（招待リンクからのパスワード設定対応） */
+  if(SB) {
+    /* URLにアクセストークンが含まれている場合（招待リンク） */
+    const hash = window.location.hash;
+    if(hash.includes('type=invite') || hash.includes('type=recovery')) {
+      S.authScreen = 'setPassword';
+      render();
+      return;
+    }
+    /* 既存セッションの確認 */
+    SB.auth.getSession().then(function(res) {
+      if(res.data.session) {
+        onSignedIn(res.data.session.user);
+      } else {
+        render();
+      }
+    });
+    /* Auth状態変化の監視 */
+    SB.auth.onAuthStateChange(function(event, session) {
+      if(event === 'SIGNED_IN' && session && !S.user) {
+        onSignedIn(session.user);
+      } else if(event === 'SIGNED_OUT') {
+        S.user = null; S.authUser = null; S.screen = 'login'; render();
+      } else if(event === 'PASSWORD_RECOVERY') {
+        S.authScreen = 'setPassword'; render();
+      }
+    });
+  } else {
+    render();
+  }
 }
 
 /* SDK確実読み込み後に起動 */
