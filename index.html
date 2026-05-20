@@ -1572,52 +1572,7 @@ create policy "allow all" on notifications for all using (true) with check (true
           <button class="btn btn-primary btn-full" onclick="changePassword()">パスワードを変更</button>
         </div>
       </div>
-      ${u.isAdmin ? `
-      <div class="section-card" style="padding:0;margin-top:0;overflow:hidden;">
-        <div style="display:flex;border-bottom:0.5px solid var(--color-border-secondary);">
-          <div style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:500;cursor:pointer;${S._adminTab!=='list'?'color:#007aff;border-bottom:2px solid #007aff;':'color:var(--color-text-secondary);'}" onclick="S._adminTab='register';render()">👥 スタッフ登録</div>
-          <div style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:500;cursor:pointer;${S._adminTab==='list'?'color:#007aff;border-bottom:2px solid #007aff;':'color:var(--color-text-secondary);'}" onclick="S._adminTab='list';loadStaffList();render()">📋 スタッフ管理</div>
-        </div>
-        ${S._adminTab === 'list' ? `
-        <div style="padding:14px;">
-          ${(S._staffList||[]).length === 0 ? '<div style="font-size:13px;color:var(--color-text-secondary);text-align:center;padding:20px;">読み込み中...</div>' :
-            (S._staffList||[]).map(st => '<div style="border:0.5px solid var(--color-border-secondary);border-radius:9px;padding:10px 12px;margin-bottom:8px;">'
-              + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
-              + '<div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--color-text-primary);">' + esc(st.name) + '</div>'
-              + '<div style="font-size:11px;color:var(--color-text-secondary);">' + esc(st.email) + '</div></div>'
-              + '<span style="font-size:10px;background:' + (st.is_active?'#dcfce7':'#fee2e2') + ';color:' + (st.is_active?'#166534':'#991b1b') + ';border-radius:4px;padding:2px 7px;font-weight:600;">' + (st.is_active?'有効':'無効') + '</span>'
-              + '</div>'
-              + '<div style="display:flex;gap:5px;flex-wrap:wrap;">'
-              + '<select style="font-size:11px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:4px 8px;background:var(--color-background-primary);" data-sid="' + esc(st.id) + '" onchange="updateStaffRole(this.dataset.sid,this.value)">'
-              + ['er_nurse','er_doctor','radiology','lab','ward_nurse','oncall','pharmacy','ce'].map(r => '<option value="' + r + '"' + (st.role===r?' selected':'') + '>' + {er_nurse:'救急看護師',er_doctor:'救急医師',radiology:'放射線技師',lab:'検査技師',ward_nurse:'病棟看護師',oncall:'当直医',pharmacy:'薬剤師',ce:'臨床工学技士'}[r] + '</option>').join('')
-              + '</select>'
-              + '<button style="font-size:11px;border-radius:6px;padding:4px 9px;border:1px solid ' + (st.is_admin?'#f97316':'#007aff') + ';background:' + (st.is_admin?'#fff8ee':'#dbeafe') + ';color:' + (st.is_admin?'#b35c00':'#1e40af') + ';" data-sid="' + esc(st.id) + '" data-admin="' + st.is_admin + '" onclick="toggleAdmin(this.dataset.sid,this.dataset.admin===\'true\')">' + (st.is_admin?'管理者を外す':'管理者にする') + '</button>'
-              + '<button style="font-size:11px;border-radius:6px;padding:4px 9px;border:1px solid ' + (st.is_active?'#ef4444':'#34c759') + ';background:' + (st.is_active?'#fff0f0':'#f0fff4') + ';color:' + (st.is_active?'#991b1b':'#166534') + ';" data-sid="' + esc(st.id) + '" data-active="' + st.is_active + '" onclick="toggleActive(this.dataset.sid,this.dataset.active===\'true\')">' + (st.is_active?'無効化':'有効化') + '</button>'
-              + '<button style="font-size:11px;border-radius:6px;padding:4px 9px;border:1px solid #ef4444;background:#fff0f0;color:#991b1b;" data-sid="' + esc(st.id) + '" data-name="' + esc(st.name) + '" onclick="deleteStaff(this.dataset.sid,this.dataset.name)">削除</button>'
-              + '</div></div>'
-            ).join('')
-          }
-        </div>` : `
-        <div style="padding:14px;">
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <input id="inv-name" type="text" placeholder="氏名" class="form-input">
-            <input id="inv-email" type="email" placeholder="メールアドレス" class="form-input">
-            <select id="inv-role" class="form-input">
-              <option value="">ロールを選択</option>
-              <option value="er_nurse">救急看護師</option>
-              <option value="er_doctor">救急医師</option>
-              <option value="radiology">放射線技師</option>
-              <option value="lab">検査技師</option>
-              <option value="ward_nurse">病棟看護師</option>
-              <option value="oncall">当直医</option>
-              <option value="pharmacy">薬剤師</option>
-              <option value="ce">臨床工学技士</option>
-            </select>
-            <input id="inv-dept" type="text" placeholder="部署名（例：救急外来）" class="form-input">
-            <button class="btn btn-primary btn-full" onclick="registerStaffDirect()">スタッフを登録</button>
-          </div>
-        </div>`}
-      </div>` : ''}
+      ${u.isAdmin ? buildAdminSection() : ''}
       <button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;" onclick="logout()">ログアウト</button>
     </div>
     ${bnav('profile')}`;
@@ -1968,6 +1923,67 @@ async function onSignedIn(authUser) {
   await loadAll();
   subscribeRealtime();
   registerPush(S.user.id);
+}
+
+/* 管理者セクションHTML生成 */
+function buildAdminSection() {
+  const tab = S._adminTab || 'register';
+  const tabStyle1 = tab !== 'list'
+    ? 'color:#007aff;border-bottom:2px solid #007aff;'
+    : 'color:var(--color-text-secondary);';
+  const tabStyle2 = tab === 'list'
+    ? 'color:#007aff;border-bottom:2px solid #007aff;'
+    : 'color:var(--color-text-secondary);';
+
+  let content = '';
+  if(tab === 'list') {
+    const list = S._staffList || [];
+    if(list.length === 0) {
+      content = '<div style="font-size:13px;color:var(--color-text-secondary);text-align:center;padding:20px;">読み込み中...</div>';
+    } else {
+      list.forEach(function(st) {
+        const activeColor = st.is_active ? '#dcfce7' : '#fee2e2';
+        const activeText  = st.is_active ? '#166534' : '#991b1b';
+        const activeLabel = st.is_active ? '有効' : '無効';
+        const roleOptions = ['er_nurse','er_doctor','radiology','lab','ward_nurse','oncall','pharmacy','ce'];
+        const roleLabels  = {er_nurse:'救急看護師',er_doctor:'救急医師',radiology:'放射線技師',lab:'検査技師',ward_nurse:'病棟看護師',oncall:'当直医',pharmacy:'薬剤師',ce:'臨床工学技士'};
+        let opts = '';
+        roleOptions.forEach(function(r){ opts += '<option value="'+r+'"'+(st.role===r?' selected':'')+'>'+roleLabels[r]+'</option>'; });
+        content += '<div style="border:0.5px solid var(--color-border-secondary);border-radius:9px;padding:10px 12px;margin-bottom:8px;">'
+          + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
+          + '<div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--color-text-primary);">'+esc(st.name)+'</div>'
+          + '<div style="font-size:11px;color:var(--color-text-secondary);">'+esc(st.email)+'</div></div>'
+          + '<span style="font-size:10px;background:'+activeColor+';color:'+activeText+';border-radius:4px;padding:2px 7px;font-weight:600;">'+activeLabel+'</span>'
+          + '</div>'
+          + '<div style="display:flex;gap:5px;flex-wrap:wrap;">'
+          + '<select style="font-size:11px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:4px 8px;background:var(--color-background-primary);" data-sid="'+esc(st.id)+'" onchange="updateStaffRole(this.dataset.sid,this.value)">'+opts+'</select>'
+          + '<button style="font-size:11px;border-radius:6px;padding:4px 9px;cursor:pointer;" data-sid="'+esc(st.id)+'" data-admin="'+st.is_admin+'" onclick="toggleAdmin(this.dataset.sid,this.dataset.admin===\'true\')">' + (st.is_admin ? '管理者を外す' : '管理者にする') + '</button>'
+          + '<button style="font-size:11px;border-radius:6px;padding:4px 9px;cursor:pointer;" data-sid="'+esc(st.id)+'" data-active="'+st.is_active+'" onclick="toggleActive(this.dataset.sid,this.dataset.active===\'true\')">' + (st.is_active ? '無効化' : '有効化') + '</button>'
+          + '<button style="font-size:11px;border-radius:6px;padding:4px 9px;border:1px solid #ef4444;background:#fff0f0;color:#991b1b;cursor:pointer;" data-sid="'+esc(st.id)+'" data-name="'+esc(st.name)+'" onclick="deleteStaff(this.dataset.sid,this.dataset.name)">削除</button>'
+          + '</div></div>';
+      });
+    }
+  } else {
+    content = '<div style="display:flex;flex-direction:column;gap:8px;">'
+      + '<input id="inv-name" type="text" placeholder="氏名" class="form-input">'
+      + '<input id="inv-email" type="email" placeholder="メールアドレス" class="form-input">'
+      + '<select id="inv-role" class="form-input"><option value="">ロールを選択</option>'
+      + '<option value="er_nurse">救急看護師</option><option value="er_doctor">救急医師</option>'
+      + '<option value="radiology">放射線技師</option><option value="lab">検査技師</option>'
+      + '<option value="ward_nurse">病棟看護師</option><option value="oncall">当直医</option>'
+      + '<option value="pharmacy">薬剤師</option><option value="ce">臨床工学技士</option></select>'
+      + '<input id="inv-dept" type="text" placeholder="部署名（例：救急外来）" class="form-input">'
+      + '<button class="btn btn-primary btn-full" onclick="registerStaffDirect()">スタッフを登録</button>'
+      + '</div>';
+  }
+
+  return '<div class="section-card" style="padding:0;margin-top:0;overflow:hidden;">'
+    + '<div style="display:flex;border-bottom:0.5px solid var(--color-border-secondary);">'
+    + '<div style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:500;cursor:pointer;'+tabStyle1+'" onclick="S._adminTab=\'register\';render()">👥 スタッフ登録</div>'
+    + '<div style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:500;cursor:pointer;'+tabStyle2+'" onclick="S._adminTab=\'list\';loadStaffList();render()">📋 スタッフ管理</div>'
+    + '</div>'
+    + '<div style="padding:14px;">'+content+'</div>'
+    + '</div>';
 }
 
 /* スタッフ一覧を取得 */
