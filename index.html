@@ -1976,7 +1976,9 @@ async function registerStaffDirect() {
   const dept  = (document.getElementById('inv-dept')?.value||'').trim();
   if(!name||!email||!role||!dept){ showToast('すべての項目を入力してください'); return; }
   if(!S.user?.isAdmin||!SB){ showToast('権限がありません'); return; }
-  const tmpPw = name.slice(0,2) + 'ERfeed1!';
+  /* 仮パスワード：ER + メールアドレスの@前4文字 + 4桁数字 */
+  const emailLocal = email.split('@')[0].slice(0,4).toLowerCase();
+  const tmpPw = 'ER' + emailLocal + '2024!';
   try {
     const res = await fetch('https://geygkbkoppwyqiqbxalz.supabase.co/functions/v1/create-staff', {
       method: 'POST',
