@@ -1563,7 +1563,28 @@ create policy "allow all" on notifications for all using (true) with check (true
         <button class="btn btn-full" style="margin-bottom:8px;font-size:13px;" onclick="seedDummyData()">🗂 ダミーデータを再投入</button>
         <button class="btn btn-full" style="font-size:13px;" onclick="goSetup()">⚙ Supabase接続設定</button>
       </div>
-      <button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;" onclick="logout()">ログアウト（ユーザー切替）</button>
+      ${u.isAdmin ? `
+      <div class="section-card" style="padding:14px;margin-top:0;">
+        <div style="font-size:13px;font-weight:600;color:var(--color-text-primary);margin-bottom:12px;">👥 スタッフ登録（管理者）</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <input id="inv-name" type="text" placeholder="氏名" class="form-input">
+          <input id="inv-email" type="email" placeholder="メールアドレス" class="form-input">
+          <select id="inv-role" class="form-input">
+            <option value="">ロールを選択</option>
+            <option value="er_nurse">救急看護師</option>
+            <option value="er_doctor">救急医師</option>
+            <option value="radiology">放射線技師</option>
+            <option value="lab">検査技師</option>
+            <option value="ward_nurse">病棟看護師</option>
+            <option value="oncall">当直医</option>
+            <option value="pharmacy">薬剤師</option>
+            <option value="ce">臨床工学技士</option>
+          </select>
+          <input id="inv-dept" type="text" placeholder="部署名（例：救急外来）" class="form-input">
+          <button class="btn btn-primary btn-full" onclick="registerStaffDirect()">スタッフを登録</button>
+        </div>
+      </div>` : ''}
+      <button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;" onclick="logout()">ログアウト</button>
     </div>
     ${bnav('profile')}`;
     return;
@@ -1873,19 +1894,39 @@ async function onSignedIn(authUser) {
     render();
     return;
   }
-  /* USERS配列と同じ形式に変換 */
+  const ROLE_LABELS = {
+    er_nurse:'救急看護師', er_doctor:'救急医師', radiology:'放射線技師',
+    lab:'検査技師', ward_nurse:'病棟看護師', oncall:'当直医',
+    pharmacy:'薬剤師', ce:'臨床工学技士'
+  };
+  const ROLE_ACTIONS = {
+    er_nurse:   ['搬送前通知','来院・トリアージ','診察完了','CT依頼','MRI依頼','心カテ依頼','輸血依頼','緊急透析依頼','検査完了','入院決定','手術決定','帰宅'],
+    er_doctor:  ['診察完了','CT依頼','MRI依頼','心カテ依頼','輸血依頼','緊急透析依頼','検査完了','入院決定','手術決定','帰宅'],
+    radiology:  ['CT完了','CT依頼','MRI依頼','検査完了'],
+    lab:        ['検査完了'],
+    ward_nurse: ['入院決定'],
+    oncall:     ['診察完了','CT依頼','MRI依頼','心カテ依頼','輸血依頼','緊急透析依頼','入院決定','手術決定','帰宅'],
+    pharmacy:   ['検査完了'],
+    ce:         ['CT完了','検査完了'],
+  };
+  const ROLE_AV = {
+    er_nurse:'avb', er_doctor:'avg', radiology:'ava', lab:'ava',
+    ward_nurse:'avb', oncall:'avg', pharmacy:'ava', ce:'ava'
+  };
   S.user = {
-    id:        staff.id,
-    name:      staff.name,
-    role:      staff.role,
-    dept:      staff.dept,
-    icon:      '👤',
-    avCls:     'avb',
-    roleLabel: staff.dept,
-    tabs:      ['全患者','自分の部署','要確認'],
-    canPost:   true,
+    id:          staff.id,
+    name:        staff.name,
+    role:        staff.role,
+    dept:        staff.dept,
+    icon:        '👤',
+    avCls:       ROLE_AV[staff.role] || 'avb',
+    roleLabel:   ROLE_LABELS[staff.role] || staff.dept,
+    tabs:        ['全患者','自分の部署','要確認'],
+    canPost:     true,
     canRegister: ['er_nurse','er_doctor','oncall'].includes(staff.role),
-    isAdmin:   staff.is_admin,
+    isAdmin:     staff.is_admin,
+    actions:     ROLE_ACTIONS[staff.role] || [],
+    deptTag:     staff.dept,
   };
   S.screen = 'feed';
   S.authScreen = 'login';
@@ -1925,6 +1966,34 @@ async function updatePassword(newPassword) {
     showToast('パスワードを設定しました。ログインしてください。');
     render();
   }
+}
+
+/* 管理者機能：スタッフを直接登録 */
+async function registerStaffDirect() {
+  const name  = (document.getElementById('inv-name')?.value||'').trim();
+  const email = (document.getElementById('inv-email')?.value||'').trim();
+  const role  = document.getElementById('inv-role')?.value||'';
+  const dept  = (document.getElementById('inv-dept')?.value||'').trim();
+  if(!name||!email||!role||!dept){ showToast('すべての項目を入力してください'); return; }
+  if(!S.user?.isAdmin||!SB){ showToast('権限がありません'); return; }
+  const tmpPw = name.slice(0,2) + 'ERfeed1!';
+  try {
+    const res = await fetch('https://geygkbkoppwyqiqbxalz.supabase.co/functions/v1/create-staff', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdleWdrYmtvcHB3eXFpcWJ4YWx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMDE4NTAsImV4cCI6MjA5MTc3Nzg1MH0.qj961IhHGG8lQKxEWuPhLX98Qu4iI_Yyr_BEYddvaGQ',
+      },
+      body: JSON.stringify({email, password: tmpPw, name, role, dept})
+    });
+    const result = await res.json();
+    if(result.error){ showToast('登録エラー: '+result.error); return; }
+    showToast(name+' さんを登録しました。仮PW: '+tmpPw);
+    ['inv-name','inv-email','inv-dept'].forEach(function(id){
+      var el=document.getElementById(id); if(el) el.value='';
+    });
+    var sel=document.getElementById('inv-role'); if(sel) sel.value='';
+  } catch(e){ showToast('エラー: '+e.message); }
 }
 
 /* =====================================================
