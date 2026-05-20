@@ -405,6 +405,7 @@ const S = {
   selPt: null,
   sheet: false, shPid: null, shAct: null, shActs: [], shMen: [], shMemo: '', shVitals: {sbp:'',dbp:'',hr:'',spo2:'',temp:'',gcs:''}, editingPostId: null,
   ptTab: '全患者', showUnread: null, selectingPatient: false, selectedPtId: null, _submitting: false,
+  _adminTab: 'register', _staffList: [],
   nf: {complaint:'',complaintOther:'',age:'',sex:'',arrivalTime:'',urgency:'',jcs:'',jcsNote:'',transport:'',procs:[],tags:[],ndepts:['ERスタッフ','当直医'],chartId:''},
   /* ローカルキャッシュ（Supabaseから取得） */
   patients: [],
@@ -1563,26 +1564,59 @@ create policy "allow all" on notifications for all using (true) with check (true
         <button class="btn btn-full" style="margin-bottom:8px;font-size:13px;" onclick="seedDummyData()">🗂 ダミーデータを再投入</button>
         <button class="btn btn-full" style="font-size:13px;" onclick="goSetup()">⚙ Supabase接続設定</button>
       </div>
-      ${u.isAdmin ? `
       <div class="section-card" style="padding:14px;margin-top:0;">
-        <div style="font-size:13px;font-weight:600;color:var(--color-text-primary);margin-bottom:12px;">👥 スタッフ登録（管理者）</div>
+        <div style="font-size:13px;font-weight:600;color:var(--color-text-primary);margin-bottom:12px;">🔑 パスワード変更</div>
         <div style="display:flex;flex-direction:column;gap:8px;">
-          <input id="inv-name" type="text" placeholder="氏名" class="form-input">
-          <input id="inv-email" type="email" placeholder="メールアドレス" class="form-input">
-          <select id="inv-role" class="form-input">
-            <option value="">ロールを選択</option>
-            <option value="er_nurse">救急看護師</option>
-            <option value="er_doctor">救急医師</option>
-            <option value="radiology">放射線技師</option>
-            <option value="lab">検査技師</option>
-            <option value="ward_nurse">病棟看護師</option>
-            <option value="oncall">当直医</option>
-            <option value="pharmacy">薬剤師</option>
-            <option value="ce">臨床工学技士</option>
-          </select>
-          <input id="inv-dept" type="text" placeholder="部署名（例：救急外来）" class="form-input">
-          <button class="btn btn-primary btn-full" onclick="registerStaffDirect()">スタッフを登録</button>
+          <input id="chg-pw1" type="password" placeholder="新しいパスワード（8文字以上）" class="form-input">
+          <input id="chg-pw2" type="password" placeholder="新しいパスワード（確認）" class="form-input">
+          <button class="btn btn-primary btn-full" onclick="changePassword()">パスワードを変更</button>
         </div>
+      </div>
+      ${u.isAdmin ? `
+      <div class="section-card" style="padding:0;margin-top:0;overflow:hidden;">
+        <div style="display:flex;border-bottom:0.5px solid var(--color-border-secondary);">
+          <div style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:500;cursor:pointer;${S._adminTab!=='list'?'color:#007aff;border-bottom:2px solid #007aff;':'color:var(--color-text-secondary);'}" onclick="S._adminTab='register';render()">👥 スタッフ登録</div>
+          <div style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:500;cursor:pointer;${S._adminTab==='list'?'color:#007aff;border-bottom:2px solid #007aff;':'color:var(--color-text-secondary);'}" onclick="S._adminTab='list';loadStaffList();render()">📋 スタッフ管理</div>
+        </div>
+        ${S._adminTab === 'list' ? `
+        <div style="padding:14px;">
+          ${(S._staffList||[]).length === 0 ? '<div style="font-size:13px;color:var(--color-text-secondary);text-align:center;padding:20px;">読み込み中...</div>' :
+            (S._staffList||[]).map(st => '<div style="border:0.5px solid var(--color-border-secondary);border-radius:9px;padding:10px 12px;margin-bottom:8px;">'
+              + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
+              + '<div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--color-text-primary);">' + esc(st.name) + '</div>'
+              + '<div style="font-size:11px;color:var(--color-text-secondary);">' + esc(st.email) + '</div></div>'
+              + '<span style="font-size:10px;background:' + (st.is_active?'#dcfce7':'#fee2e2') + ';color:' + (st.is_active?'#166534':'#991b1b') + ';border-radius:4px;padding:2px 7px;font-weight:600;">' + (st.is_active?'有効':'無効') + '</span>'
+              + '</div>'
+              + '<div style="display:flex;gap:5px;flex-wrap:wrap;">'
+              + '<select style="font-size:11px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:4px 8px;background:var(--color-background-primary);" data-sid="' + esc(st.id) + '" onchange="updateStaffRole(this.dataset.sid,this.value)">'
+              + ['er_nurse','er_doctor','radiology','lab','ward_nurse','oncall','pharmacy','ce'].map(r => '<option value="' + r + '"' + (st.role===r?' selected':'') + '>' + {er_nurse:'救急看護師',er_doctor:'救急医師',radiology:'放射線技師',lab:'検査技師',ward_nurse:'病棟看護師',oncall:'当直医',pharmacy:'薬剤師',ce:'臨床工学技士'}[r] + '</option>').join('')
+              + '</select>'
+              + '<button style="font-size:11px;border-radius:6px;padding:4px 9px;border:1px solid ' + (st.is_admin?'#f97316':'#007aff') + ';background:' + (st.is_admin?'#fff8ee':'#dbeafe') + ';color:' + (st.is_admin?'#b35c00':'#1e40af') + ';" data-sid="' + esc(st.id) + '" data-admin="' + st.is_admin + '" onclick="toggleAdmin(this.dataset.sid,this.dataset.admin===\'true\')">' + (st.is_admin?'管理者を外す':'管理者にする') + '</button>'
+              + '<button style="font-size:11px;border-radius:6px;padding:4px 9px;border:1px solid ' + (st.is_active?'#ef4444':'#34c759') + ';background:' + (st.is_active?'#fff0f0':'#f0fff4') + ';color:' + (st.is_active?'#991b1b':'#166534') + ';" data-sid="' + esc(st.id) + '" data-active="' + st.is_active + '" onclick="toggleActive(this.dataset.sid,this.dataset.active===\'true\')">' + (st.is_active?'無効化':'有効化') + '</button>'
+              + '<button style="font-size:11px;border-radius:6px;padding:4px 9px;border:1px solid #ef4444;background:#fff0f0;color:#991b1b;" data-sid="' + esc(st.id) + '" data-name="' + esc(st.name) + '" onclick="deleteStaff(this.dataset.sid,this.dataset.name)">削除</button>'
+              + '</div></div>'
+            ).join('')
+          }
+        </div>` : `
+        <div style="padding:14px;">
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <input id="inv-name" type="text" placeholder="氏名" class="form-input">
+            <input id="inv-email" type="email" placeholder="メールアドレス" class="form-input">
+            <select id="inv-role" class="form-input">
+              <option value="">ロールを選択</option>
+              <option value="er_nurse">救急看護師</option>
+              <option value="er_doctor">救急医師</option>
+              <option value="radiology">放射線技師</option>
+              <option value="lab">検査技師</option>
+              <option value="ward_nurse">病棟看護師</option>
+              <option value="oncall">当直医</option>
+              <option value="pharmacy">薬剤師</option>
+              <option value="ce">臨床工学技士</option>
+            </select>
+            <input id="inv-dept" type="text" placeholder="部署名（例：救急外来）" class="form-input">
+            <button class="btn btn-primary btn-full" onclick="registerStaffDirect()">スタッフを登録</button>
+          </div>
+        </div>`}
       </div>` : ''}
       <button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;" onclick="logout()">ログアウト</button>
     </div>
@@ -1934,6 +1968,77 @@ async function onSignedIn(authUser) {
   await loadAll();
   subscribeRealtime();
   registerPush(S.user.id);
+}
+
+/* スタッフ一覧を取得 */
+async function loadStaffList() {
+  if(!SB || !S.user?.isAdmin) return;
+  const { data, error } = await SB.from('staffs').select('*').order('created_at', {ascending: true});
+  if(!error && data) { S._staffList = data; render(); }
+}
+
+/* ロール変更 */
+async function updateStaffRole(id, newRole) {
+  if(!SB || !S.user?.isAdmin) return;
+  const { error } = await SB.from('staffs').update({ role: newRole }).eq('id', id);
+  if(error) { showToast('更新エラー: ' + error.message); return; }
+  const st = (S._staffList||[]).find(s => s.id === id);
+  if(st) st.role = newRole;
+  showToast('ロールを変更しました');
+}
+
+/* 管理者権限のトグル */
+async function toggleAdmin(id, current) {
+  if(!SB || !S.user?.isAdmin) return;
+  if(id === S.user.id) { showToast('自分の管理者権限は変更できません'); return; }
+  const { error } = await SB.from('staffs').update({ is_admin: !current }).eq('id', id);
+  if(error) { showToast('更新エラー: ' + error.message); return; }
+  const st = (S._staffList||[]).find(s => s.id === id);
+  if(st) st.is_admin = !current;
+  showToast(!current ? '管理者権限を付与しました' : '管理者権限を外しました');
+  render();
+}
+
+/* 有効・無効のトグル */
+async function toggleActive(id, current) {
+  if(!SB || !S.user?.isAdmin) return;
+  if(id === S.user.id) { showToast('自分のアカウントは変更できません'); return; }
+  const { error } = await SB.from('staffs').update({ is_active: !current }).eq('id', id);
+  if(error) { showToast('更新エラー: ' + error.message); return; }
+  const st = (S._staffList||[]).find(s => s.id === id);
+  if(st) st.is_active = !current;
+  showToast(!current ? 'アカウントを有効化しました' : 'アカウントを無効化しました');
+  render();
+}
+
+/* スタッフ削除 */
+async function deleteStaff(id, name) {
+  if(!SB || !S.user?.isAdmin) return;
+  if(id === S.user.id) { showToast('自分のアカウントは削除できません'); return; }
+  if(!confirm(name + ' さんを削除しますか？この操作は取り消せません。')) return;
+  const { error } = await SB.from('staffs').delete().eq('id', id);
+  if(error) { showToast('削除エラー: ' + error.message); return; }
+  S._staffList = (S._staffList||[]).filter(s => s.id !== id);
+  showToast(name + ' さんを削除しました');
+  render();
+}
+
+/* パスワード変更 */
+async function changePassword() {
+  const pw1 = (document.getElementById('chg-pw1')?.value || '').trim();
+  const pw2 = (document.getElementById('chg-pw2')?.value || '').trim();
+  if(!pw1 || !pw2) { showToast('パスワードを入力してください'); return; }
+  if(pw1.length < 8) { showToast('8文字以上で入力してください'); return; }
+  if(pw1 !== pw2) { showToast('パスワードが一致しません'); return; }
+  if(!SB) return;
+  const { error } = await SB.auth.updateUser({ password: pw1 });
+  if(error) {
+    showToast('エラー: ' + error.message);
+  } else {
+    showToast('パスワードを変更しました');
+    document.getElementById('chg-pw1').value = '';
+    document.getElementById('chg-pw2').value = '';
+  }
 }
 
 /* ログアウト */
