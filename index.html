@@ -1540,42 +1540,31 @@ create policy "allow all" on notifications for all using (true) with check (true
 
   /* PROFILE */
   if(S.screen === 'profile') {
-    root.innerHTML = `
-    <div class="topbar"><span class="topbar-back" onclick="goFeed()">← 戻る</span><span class="topbar-title">プロフィール</span></div>
-    <div class="profile-header">
-      <div class="profile-av ${u.avCls}">${u.icon}</div>
-      <div class="profile-name">${esc(u.name)}</div>
-      <div class="profile-dept">${esc(u.dept)}</div>
-      <span class="role-tag role-${u.role}">${esc(u.roleLabel)}</span>
-    </div>
-    <div class="content">
-      <div class="section-card">
-        <div class="profile-row"><span class="profile-key">氏名</span><span class="profile-val">${esc(u.name)}</span></div>
-        <div class="profile-row"><span class="profile-key">部署</span><span class="profile-val">${esc(u.dept)}</span></div>
-        <div class="profile-row"><span class="profile-key">役割</span><span class="profile-val">${esc(u.roleLabel)}</span></div>
-        <div class="profile-row"><span class="profile-key">患者登録</span><span class="profile-val">${u.canRegister?'可能':'不可'}</span></div>
-        <div class="profile-row" style="flex-direction:column;align-items:flex-start;gap:8px;padding:14px 0;">
-          <span class="profile-key">利用可能アクション</span>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;">${u.actions.map(a=>`<span style="font-size:12px;background:#f2f2f7;border-radius:6px;padding:3px 9px;color:#3c3c43;">${a}</span>`).join('')}</div>
-        </div>
-      </div>
-      <div class="section-card" style="padding:14px;">
-        <div style="font-size:13px;font-weight:600;color:#1c1c1e;margin-bottom:10px;">開発者メニュー</div>
-        <button class="btn btn-full" style="margin-bottom:8px;font-size:13px;" onclick="seedDummyData()">🗂 ダミーデータを再投入</button>
-        <button class="btn btn-full" style="font-size:13px;" onclick="goSetup()">⚙ Supabase接続設定</button>
-      </div>
-      <div class="section-card" style="padding:14px;margin-top:0;">
-        <div style="font-size:13px;font-weight:600;color:var(--color-text-primary);margin-bottom:12px;">🔑 パスワード変更</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <input id="chg-pw1" type="password" placeholder="新しいパスワード（8文字以上）" class="form-input">
-          <input id="chg-pw2" type="password" placeholder="新しいパスワード（確認）" class="form-input">
-          <button class="btn btn-primary btn-full" onclick="changePassword()">パスワードを変更</button>
-        </div>
-      </div>
-      ${u.isAdmin ? buildAdminSection() : ''}
-      <button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;" onclick="logout()">ログアウト</button>
-    </div>
-    ${bnav('profile')}`;
+    let ph = '<div class="topbar"><span class="topbar-back" onclick="goFeed()">← 戻る</span><span class="topbar-title">プロフィール</span></div>';
+    ph += '<div class="content">';
+    /* プロフィールヘッダー */
+    ph += '<div class="section-card">';
+    ph += '<div class="profile-header">';
+    ph += '<div class="profile-av '+u.avCls+'">'+u.icon+'</div>';
+    ph += '<div class="profile-name">'+esc(u.name)+'</div>';
+    ph += '<div class="profile-role">'+esc(u.roleLabel)+' · '+esc(u.dept)+'</div>';
+    ph += '</div>';
+    ph += '</div>';
+    /* パスワード変更 */
+    ph += '<div class="section-card" style="padding:14px;">';
+    ph += '<div style="font-size:13px;font-weight:600;color:var(--color-text-primary);margin-bottom:12px;">🔑 パスワード変更</div>';
+    ph += '<div style="display:flex;flex-direction:column;gap:8px;">';
+    ph += '<input id="chg-pw1" type="password" placeholder="新しいパスワード（8文字以上）" class="form-input">';
+    ph += '<input id="chg-pw2" type="password" placeholder="新しいパスワード（確認）" class="form-input">';
+    ph += '<button class="btn btn-primary btn-full" onclick="changePassword()">パスワードを変更</button>';
+    ph += '</div></div>';
+    /* 管理者セクション */
+    if(u.isAdmin) ph += buildAdminSection();
+    /* ログアウト */
+    ph += '<button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;" onclick="logout()">ログアウト</button>';
+    ph += '</div>';
+    ph += bnav('profile');
+    root.innerHTML = ph;
     return;
   }
 
