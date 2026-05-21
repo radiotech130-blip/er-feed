@@ -18,7 +18,7 @@
 html{font-size:16px;-webkit-text-size-adjust:100%;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;background:#f2f2f7;color:#1c1c1e;min-height:100vh;min-height:-webkit-fill-available;overflow-x:hidden;-webkit-tap-highlight-color:transparent;}
 #app{max-width:430px;margin:0 auto;background:#f2f2f7;height:100vh;height:-webkit-fill-available;max-height:100vh;display:flex;flex-direction:column;position:relative;}
-#root{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+#root{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;height:100%;}
 .sbar{background:#fff;padding:env(safe-area-inset-top,12px) 16px 0;display:flex;justify-content:space-between;align-items:center;border-bottom:0.5px solid #e5e5ea;min-height:calc(env(safe-area-inset-top,12px) + 20px);}
 .sbar span{font-size:12px;color:#8e8e93;}
 .topbar{background:#fff;padding:14px 16px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid #e5e5ea;min-height:52px;}
@@ -28,7 +28,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .tabs{background:#fff;display:flex;border-bottom:0.5px solid #e5e5ea;}
 .tab{flex:1;text-align:center;font-size:13px;padding:10px 4px 9px;color:#8e8e93;border-bottom:2px solid transparent;cursor:pointer;-webkit-user-select:none;user-select:none;min-height:44px;display:flex;align-items:center;justify-content:center;}
 .tab.on{color:#007aff;border-bottom-color:#007aff;font-weight:500;}
-.content{flex:1;padding:12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:12px;}
+.content{flex:1;padding:12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:12px;min-height:0;max-height:100%;}
 .card{background:#fff;border-radius:12px;padding:14px 14px 12px;cursor:pointer;-webkit-user-select:none;user-select:none;position:relative;border:0.5px solid rgba(0,0,0,0.08);}
 .card:active{opacity:0.85;}
 .card.urg-saiyusen{border-left:4px solid #ef4444;border-radius:0 12px 12px 0;}
@@ -1591,7 +1591,7 @@ create policy "allow all" on notifications for all using (true) with check (true
     sc += '<div style="padding-bottom:8px;"><button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;" onclick="logout()">ログアウト</button></div>';
 
     let ph = '<div class="topbar"><span class="topbar-back" onclick="goFeed()">← 戻る</span><span class="topbar-title">プロフィール</span></div>';
-    ph += '<div class="content" style="padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));">' + sc + '</div>';
+    ph += '<div class="content" style="padding-bottom:calc(100px + env(safe-area-inset-bottom,0px));">' + sc + '</div>';
     ph += bnav('profile');
     root.innerHTML = ph;
     return;
