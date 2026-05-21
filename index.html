@@ -1568,29 +1568,30 @@ create policy "allow all" on notifications for all using (true) with check (true
 
   /* PROFILE */
   if(S.screen === 'profile') {
-    let ph = '<div class="topbar"><span class="topbar-back" onclick="goFeed()">← 戻る</span><span class="topbar-title">プロフィール</span></div>';
-    /* contentをflex:1+overflow-y:autoで中間スクロール */
-    ph += '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;display:flex;flex-direction:column;gap:10px;padding-bottom:120px;">';
+    /* スクロールエリア（コンテンツ全体） */
+    let sc = '';
     /* プロフィールヘッダー */
-    ph += '<div class="section-card">';
-    ph += '<div class="profile-header">';
-    ph += '<div class="profile-av '+u.avCls+'">'+u.icon+'</div>';
-    ph += '<div class="profile-name">'+esc(u.name)+'</div>';
-    ph += '<div class="profile-role">'+esc(u.roleLabel)+' · '+esc(u.dept)+'</div>';
-    ph += '</div></div>';
+    sc += '<div class="section-card">';
+    sc += '<div class="profile-header">';
+    sc += '<div class="profile-av '+u.avCls+'">'+u.icon+'</div>';
+    sc += '<div class="profile-name">'+esc(u.name)+'</div>';
+    sc += '<div class="profile-role">'+esc(u.roleLabel)+' · '+esc(u.dept)+'</div>';
+    sc += '</div></div>';
     /* パスワード変更 */
-    ph += '<div class="section-card" style="padding:14px;">';
-    ph += '<div style="font-size:13px;font-weight:600;color:var(--color-text-primary);margin-bottom:12px;">🔑 パスワード変更</div>';
-    ph += '<div style="display:flex;flex-direction:column;gap:8px;">';
-    ph += '<input id="chg-pw1" type="password" placeholder="新しいパスワード（8文字以上）" class="form-input">';
-    ph += '<input id="chg-pw2" type="password" placeholder="新しいパスワード（確認）" class="form-input">';
-    ph += '<button class="btn btn-primary btn-full" onclick="changePassword()">パスワードを変更</button>';
-    ph += '</div></div>';
+    sc += '<div class="section-card" style="padding:14px;">';
+    sc += '<div style="font-size:13px;font-weight:600;color:var(--color-text-primary);margin-bottom:12px;">🔑 パスワード変更</div>';
+    sc += '<div style="display:flex;flex-direction:column;gap:8px;">';
+    sc += '<input id="chg-pw1" type="password" placeholder="新しいパスワード（8文字以上）" class="form-input">';
+    sc += '<input id="chg-pw2" type="password" placeholder="新しいパスワード（確認）" class="form-input">';
+    sc += '<button class="btn btn-primary btn-full" onclick="changePassword()">パスワードを変更</button>';
+    sc += '</div></div>';
     /* 管理者セクション */
-    if(u.isAdmin) ph += buildAdminSection();
+    if(u.isAdmin) sc += buildAdminSection();
     /* ログアウト */
-    ph += '<button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;margin-top:4px;" onclick="logout()">ログアウト</button>';
-    ph += '</div>';
+    sc += '<div style="padding-bottom:8px;"><button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;" onclick="logout()">ログアウト</button></div>';
+
+    let ph = '<div class="topbar"><span class="topbar-back" onclick="goFeed()">← 戻る</span><span class="topbar-title">プロフィール</span></div>';
+    ph += '<div class="content" style="padding-bottom:20px;">' + sc + '</div>';
     ph += bnav('profile');
     root.innerHTML = ph;
     return;
