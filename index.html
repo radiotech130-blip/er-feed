@@ -1586,7 +1586,7 @@ create policy "allow all" on notifications for all using (true) with check (true
     if(u.isAdmin) sc += buildAdminSection();
 
     let ph = '<div class="topbar"><span class="topbar-back" onclick="goFeed()">← 戻る</span><span class="topbar-title">プロフィール</span></div>';
-    ph += '<div class="content" style="padding-bottom:calc(70px + env(safe-area-inset-bottom,0px));">' + sc + '</div>';
+    ph += '<div class="content" style="padding-bottom:calc(130px + env(safe-area-inset-bottom,0px));">' + sc + '</div>';
     /* ログアウトをfooterとして固定（botnavの上） */
     ph += '<div style="background:#fff;border-top:0.5px solid #e5e5ea;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));position:sticky;bottom:60px;z-index:40;">';
     ph += '<button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;" onclick="logout()">ログアウト</button>';
@@ -1995,7 +1995,7 @@ function buildAdminSection() {
       + '</div>';
   }
 
-  return '<div class="section-card" style="padding:0;margin-top:0;overflow:visible;min-height:300px;">'
+  return '<div class="section-card" style="padding:0;margin-top:0;overflow:visible;">'
     + '<div style="display:flex;border-bottom:0.5px solid var(--color-border-secondary);">'
     + '<div style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:500;cursor:pointer;'+tabStyle1+'" onclick="S._adminTab=\'register\';render()">👥 スタッフ登録</div>'
     + '<div style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:500;cursor:pointer;'+tabStyle2+'" onclick="S._adminTab=\'list\';loadStaffList();render()">📋 スタッフ管理</div>'
