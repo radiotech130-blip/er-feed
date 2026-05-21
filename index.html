@@ -1591,7 +1591,7 @@ create policy "allow all" on notifications for all using (true) with check (true
     sc += '<div style="padding-bottom:8px;"><button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;" onclick="logout()">ログアウト</button></div>';
 
     let ph = '<div class="topbar"><span class="topbar-back" onclick="goFeed()">← 戻る</span><span class="topbar-title">プロフィール</span></div>';
-    ph += '<div class="content" style="padding-bottom:20px;">' + sc + '</div>';
+    ph += '<div class="content" style="padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));">' + sc + '</div>';
     ph += bnav('profile');
     root.innerHTML = ph;
     return;
