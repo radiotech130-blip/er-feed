@@ -735,13 +735,10 @@ function goProfile(){
     ph += '<button class="btn btn-primary btn-full" onclick="changePassword()">パスワードを変更</button>';
     ph += '</div>';
     if(u.isAdmin) ph += buildAdminSection();
-    ph += '<button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;" onclick="logout()">ログアウト</button>';
-    ph += '<div style="height:40px;"></div>';
+    ph += '<button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;margin-top:4px;" onclick="logout()">ログアウト</button>';
     ph += '</div>';
     ph += bnav('profile');
     root.innerHTML = ph;
-    const ce = root.querySelector('.content');
-    if(ce) ce.scrollTop = 0;
   }
 }
 function goSetup()  { S.screen='setup'; render(); }
@@ -1572,15 +1569,15 @@ create policy "allow all" on notifications for all using (true) with check (true
   /* PROFILE */
   if(S.screen === 'profile') {
     let ph = '<div class="topbar"><span class="topbar-back" onclick="goFeed()">← 戻る</span><span class="topbar-title">プロフィール</span></div>';
-    ph += '<div class="content">';
+    /* contentをflex:1+overflow-y:autoで中間スクロール */
+    ph += '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;display:flex;flex-direction:column;gap:10px;padding-bottom:80px;">';
     /* プロフィールヘッダー */
     ph += '<div class="section-card">';
     ph += '<div class="profile-header">';
     ph += '<div class="profile-av '+u.avCls+'">'+u.icon+'</div>';
     ph += '<div class="profile-name">'+esc(u.name)+'</div>';
     ph += '<div class="profile-role">'+esc(u.roleLabel)+' · '+esc(u.dept)+'</div>';
-    ph += '</div>';
-    ph += '</div>';
+    ph += '</div></div>';
     /* パスワード変更 */
     ph += '<div class="section-card" style="padding:14px;">';
     ph += '<div style="font-size:13px;font-weight:600;color:var(--color-text-primary);margin-bottom:12px;">🔑 パスワード変更</div>';
@@ -1592,14 +1589,10 @@ create policy "allow all" on notifications for all using (true) with check (true
     /* 管理者セクション */
     if(u.isAdmin) ph += buildAdminSection();
     /* ログアウト */
-    ph += '<button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;" onclick="logout()">ログアウト</button>';
-    ph += '<div style="height:40px;"></div>';
+    ph += '<button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;margin-top:4px;" onclick="logout()">ログアウト</button>';
     ph += '</div>';
     ph += bnav('profile');
     root.innerHTML = ph;
-    /* スクロール位置をリセット */
-    const contentEl = root.querySelector('.content');
-    if(contentEl) contentEl.scrollTop = 0;
     return;
   }
 
