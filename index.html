@@ -712,7 +712,38 @@ function goFeed()   { S.screen='feed'; S.selPt=null; render(); }
 function goPts()    { S.screen='patients'; render(); }
 function goNotifs() { S.screen='notifications'; render(); }
 function goNew()    { S.screen='newpatient'; render(); }
-function goProfile(){ S.screen='profile'; render(); }
+function goProfile(){
+  S.screen='profile';
+  render();
+  /* profile画面が表示されていない場合の強制表示 */
+  const root = document.getElementById('root');
+  if(root && !root.innerHTML.includes('プロフィール')) {
+    console.log('[Debug] profile render failed, forcing...');
+    const u = S.user;
+    if(!u) return;
+    let ph = '<div class="topbar"><span class="topbar-back" onclick="goFeed()">← 戻る</span><span class="topbar-title">プロフィール</span></div>';
+    ph += '<div class="content">';
+    ph += '<div class="section-card"><div class="profile-header">';
+    ph += '<div class="profile-av '+u.avCls+'">'+u.icon+'</div>';
+    ph += '<div class="profile-name">'+esc(u.name)+'</div>';
+    ph += '<div class="profile-role">'+esc(u.roleLabel)+' · '+esc(u.dept)+'</div>';
+    ph += '</div></div>';
+    ph += '<div class="section-card" style="padding:14px;">';
+    ph += '<div style="font-size:13px;font-weight:600;margin-bottom:12px;">🔑 パスワード変更</div>';
+    ph += '<input id="chg-pw1" type="password" placeholder="新しいパスワード（8文字以上）" class="form-input" style="margin-bottom:8px;">';
+    ph += '<input id="chg-pw2" type="password" placeholder="新しいパスワード（確認）" class="form-input" style="margin-bottom:8px;">';
+    ph += '<button class="btn btn-primary btn-full" onclick="changePassword()">パスワードを変更</button>';
+    ph += '</div>';
+    if(u.isAdmin) ph += buildAdminSection();
+    ph += '<button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;" onclick="logout()">ログアウト</button>';
+    ph += '<div style="height:40px;"></div>';
+    ph += '</div>';
+    ph += bnav('profile');
+    root.innerHTML = ph;
+    const ce = root.querySelector('.content');
+    if(ce) ce.scrollTop = 0;
+  }
+}
 function goSetup()  { S.screen='setup'; render(); }
 function openPt(id) { S.selPt=id; S.screen='patient'; render(); }
 
@@ -1562,9 +1593,13 @@ create policy "allow all" on notifications for all using (true) with check (true
     if(u.isAdmin) ph += buildAdminSection();
     /* ログアウト */
     ph += '<button class="btn btn-full" style="color:#ff3b30;border-color:#ff3b30;" onclick="logout()">ログアウト</button>';
+    ph += '<div style="height:40px;"></div>';
     ph += '</div>';
     ph += bnav('profile');
     root.innerHTML = ph;
+    /* スクロール位置をリセット */
+    const contentEl = root.querySelector('.content');
+    if(contentEl) contentEl.scrollTop = 0;
     return;
   }
 
@@ -1901,7 +1936,7 @@ async function onSignedIn(authUser) {
     roleLabel:   ROLE_LABELS[staff.role] || staff.dept,
     tabs:        ['全患者','自分の部署','要確認'],
     canPost:     true,
-    canRegister: ['er_nurse','er_doctor','oncall'].includes(staff.role),
+    canRegister: ['er_nurse','er_doctor','oncall'].includes(staff.role) || staff.is_admin,
     isAdmin:     staff.is_admin,
     actions:     ROLE_ACTIONS[staff.role] || [],
     deptTag:     staff.dept,
