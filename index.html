@@ -1570,7 +1570,7 @@ create policy "allow all" on notifications for all using (true) with check (true
   if(S.screen === 'profile') {
     let ph = '<div class="topbar"><span class="topbar-back" onclick="goFeed()">← 戻る</span><span class="topbar-title">プロフィール</span></div>';
     /* contentをflex:1+overflow-y:autoで中間スクロール */
-    ph += '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;display:flex;flex-direction:column;gap:10px;padding-bottom:80px;">';
+    ph += '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;display:flex;flex-direction:column;gap:10px;padding-bottom:120px;">';
     /* プロフィールヘッダー */
     ph += '<div class="section-card">';
     ph += '<div class="profile-header">';
@@ -1951,6 +1951,7 @@ function buildAdminSection() {
   const tabStyle2 = tab === 'list'
     ? 'color:#007aff;border-bottom:2px solid #007aff;'
     : 'color:var(--color-text-secondary);';
+  /* min-heightを設定して内容が隠れないようにする */
 
   let content = '';
   if(tab === 'list') {
@@ -1994,7 +1995,7 @@ function buildAdminSection() {
       + '</div>';
   }
 
-  return '<div class="section-card" style="padding:0;margin-top:0;overflow:hidden;">'
+  return '<div class="section-card" style="padding:0;margin-top:0;overflow:visible;min-height:300px;">'
     + '<div style="display:flex;border-bottom:0.5px solid var(--color-border-secondary);">'
     + '<div style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:500;cursor:pointer;'+tabStyle1+'" onclick="S._adminTab=\'register\';render()">👥 スタッフ登録</div>'
     + '<div style="flex:1;text-align:center;padding:10px;font-size:13px;font-weight:500;cursor:pointer;'+tabStyle2+'" onclick="S._adminTab=\'list\';loadStaffList();render()">📋 スタッフ管理</div>'
