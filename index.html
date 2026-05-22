@@ -254,100 +254,67 @@ const ptDisplayName = (pid) => {
 const TLC = ['#34c759','#af52de','#007aff','#ff9500','#30b83f','#8e8e93','#ff6b35','#1e90ff'];
 
 /* 年齢・性別からSVGアイコンを生成 */
-function ptIcon(age, sex, size=40) {
+function ptIcon(age, sex, size=52) {
   const ageNum = parseInt(String(age).replace(/[^0-9]/g,'')) || 40;
-  const isFemale = sex === '女';
-  const isYoung  = ageNum < 35;
-  const isMid    = ageNum >= 35 && ageNum < 65;
+  const isF    = sex === '女';
+  const isInfant = ageNum < 6;
+  const isChild  = ageNum >= 6 && ageNum < 15;
+  const isAdult  = ageNum >= 15 && ageNum < 65;
   const isOld    = ageNum >= 65 && ageNum < 80;
   const isVOld   = ageNum >= 80;
 
-  /* 背景色 */
-  const bgM = isYoung?'#dbeafe':isMid?'#e0e7ff':isOld?'#f1f5f9':'#f8fafc';
-  const bgF = isYoung?'#fce7f3':isMid?'#faf5ff':isOld?'#fdf4ff':'#fdf8ff';
-  const bg  = isFemale ? bgF : bgM;
+  /* ベースサイズは80x80 viewBox、出力サイズはsize */
+  const s = size;
 
-  /* 肌・体色 */
-  const skin  = '#fde68a';
-  const bodyM = isYoung?'#93c5fd':isMid?'#a5b4fc':isOld?'#94a3b8':'#94a3b8';
-  const bodyF = isYoung?'#f9a8d4':isMid?'#ddd6fe':isOld?'#e9d5ff':'#ddd6fe';
-  const body  = isFemale ? bodyF : bodyM;
+  if(isInfant) {
+    /* 乳幼児 */
+    return `<svg width="${s}" height="${s}" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="18" fill="#fffbeb"/><ellipse cx="40" cy="64" rx="24" ry="14" fill="#bfdbfe"/><path d="M16 64 Q20 50 40 47 Q60 50 64 64" fill="#93c5fd"/><path d="M26 47 Q40 54 54 47" stroke="#60a5fa" stroke-width="2" fill="none"/><circle cx="40" cy="28" r="19" fill="#fde68a"/><circle cx="40" cy="28" r="19" stroke="#f59e0b" stroke-width="1" fill="none" opacity="0.3"/><path d="M33 11 Q37 7 40 9 Q43 7 47 11" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M40 9 Q40 5 42 7" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="31" cy="27" r="6" fill="white"/><circle cx="49" cy="27" r="6" fill="white"/><circle cx="31" cy="28" r="3.8" fill="#1d4ed8"/><circle cx="49" cy="28" r="3.8" fill="#1d4ed8"/><circle cx="32.8" cy="26" r="1.4" fill="white"/><circle cx="50.8" cy="26" r="1.4" fill="white"/><ellipse cx="22" cy="32" rx="5" ry="3.5" fill="#fca5a5" opacity="0.75"/><ellipse cx="58" cy="32" rx="5" ry="3.5" fill="#fca5a5" opacity="0.75"/><path d="M33 37 Q40 43 47 37" stroke="#d97706" stroke-width="2" stroke-linecap="round" fill="none"/></svg>`;
+  }
 
-  /* 髪色 */
-  const hairM = isYoung?'#1e3a8a':isMid?'#1e3a8a':isOld?'#cbd5e1':'#f1f5f9';
-  const hairF = isYoung?'#f59e0b':isMid?'#92400e':isOld?'#e2e8f0':'#f1f5f9';
-  const hair  = isFemale ? hairF : hairM;
+  if(isChild && !isF) {
+    /* 小児・男 */
+    return `<svg width="${s}" height="${s}" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="18" fill="#dbeafe"/><path d="M8 80 Q11 58 40 54 Q69 58 72 80Z" fill="#3b82f6"/><path d="M32 54 L36 62 M48 54 L44 62" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M11 62 Q6 70 7 77" stroke="#3b82f6" stroke-width="7" stroke-linecap="round" fill="none"/><path d="M69 62 Q74 70 73 77" stroke="#3b82f6" stroke-width="7" stroke-linecap="round" fill="none"/><circle cx="40" cy="30" r="20" fill="#fde68a"/><path d="M20 27 Q21 8 40 7 Q59 8 60 27" fill="#78350f"/><path d="M20 27 Q17 16 20 11" fill="#78350f"/><path d="M60 27 Q63 16 60 11" fill="#78350f"/><path d="M22 14 Q25 8 30 11" stroke="#78350f" stroke-width="3.5" stroke-linecap="round" fill="none"/><path d="M30 9 Q33 4 38 8" stroke="#78350f" stroke-width="3.5" stroke-linecap="round" fill="none"/><path d="M38 7 Q42 3 47 7" stroke="#78350f" stroke-width="3.5" stroke-linecap="round" fill="none"/><path d="M20 20 Q23 15 26 18" stroke="#78350f" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M40 10 Q44 7 46 12" stroke="#78350f" stroke-width="3" stroke-linecap="round" fill="none"/><ellipse cx="31" cy="29" rx="5" ry="5.5" fill="white"/><ellipse cx="49" cy="29" rx="5" ry="5.5" fill="white"/><ellipse cx="31" cy="30" rx="3.3" ry="3.6" fill="#1e3a5f"/><ellipse cx="49" cy="30" rx="3.3" ry="3.6" fill="#1e3a5f"/><circle cx="33" cy="28.5" r="1.3" fill="white"/><circle cx="51" cy="28.5" r="1.3" fill="white"/><path d="M26 23 Q31 20.5 36 23" stroke="#78350f" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M44 23 Q49 20.5 54 23" stroke="#78350f" stroke-width="2.2" stroke-linecap="round" fill="none"/><ellipse cx="22" cy="34" rx="4.5" ry="3" fill="#fca5a5" opacity="0.65"/><ellipse cx="58" cy="34" rx="4.5" ry="3" fill="#fca5a5" opacity="0.65"/><path d="M33 39 Q40 44 47 39" stroke="#d97706" stroke-width="2" stroke-linecap="round" fill="none"/></svg>`;
+  }
 
-  /* 目色 */
-  const eyeM = isYoung?'#1e40af':'#334155';
-  const eyeF = isYoung?'#831843':isMid?'#4c1d95':'#3b0764';
-  const eye  = isFemale ? eyeF : eyeM;
+  if(isChild && isF) {
+    /* 小児・女 */
+    return `<svg width="${s}" height="${s}" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="18" fill="#fce7f3"/><path d="M8 80 Q11 58 40 54 Q69 58 72 80Z" fill="#f472b6"/><path d="M22 62 Q40 68 58 62" stroke="#ec4899" stroke-width="2" fill="none"/><path d="M20 27 Q13 14 16 7 Q20 3 24 9 Q23 18 22 27" fill="#f472b6"/><path d="M60 27 Q67 14 64 7 Q60 3 56 9 Q57 18 58 27" fill="#f472b6"/><path d="M14 11 Q19 7 24 11 Q19 15 14 11Z" fill="#fbbf24"/><path d="M24 11 Q19 7 14 11 Q19 15 24 11Z" fill="#fde68a"/><circle cx="19" cy="11" r="3" fill="#f59e0b"/><path d="M56 11 Q61 7 66 11 Q61 15 56 11Z" fill="#fbbf24"/><path d="M66 11 Q61 7 56 11 Q61 15 66 11Z" fill="#fde68a"/><circle cx="61" cy="11" r="3" fill="#f59e0b"/><path d="M20 26 Q21 9 40 8 Q59 9 60 26" fill="#f472b6"/><path d="M20 26 Q22 14 27 17" fill="#e11d78"/><path d="M27 14 Q30 9 34 13" fill="#e11d78"/><path d="M34 11 Q38 7 42 11" fill="#e11d78"/><path d="M42 11 Q46 8 50 13" fill="#e11d78"/><path d="M50 14 Q54 14 58 19" fill="#e11d78"/><path d="M22 24 Q25 18 28 22" stroke="#f472b6" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M52 22 Q56 17 58 22" stroke="#f472b6" stroke-width="2.5" stroke-linecap="round" fill="none"/><circle cx="40" cy="30" r="19" fill="#fde68a"/><ellipse cx="30" cy="29" rx="5.5" ry="6.5" fill="white"/><ellipse cx="50" cy="29" rx="5.5" ry="6.5" fill="white"/><ellipse cx="30" cy="30.5" rx="3.6" ry="4.2" fill="#7c3aed"/><ellipse cx="50" cy="30.5" rx="3.6" ry="4.2" fill="#7c3aed"/><circle cx="32" cy="28.5" r="1.5" fill="white"/><circle cx="52" cy="28.5" r="1.5" fill="white"/><circle cx="28.5" cy="33" r="0.9" fill="white" opacity="0.55"/><circle cx="48.5" cy="33" r="0.9" fill="white" opacity="0.55"/><path d="M24.5 23.5 L23 21.5" stroke="#4c1d95" stroke-width="1.3" stroke-linecap="round"/><path d="M27 22.5 L26 20.5" stroke="#4c1d95" stroke-width="1.3" stroke-linecap="round"/><path d="M29.5 22 L29 20" stroke="#4c1d95" stroke-width="1.3" stroke-linecap="round"/><path d="M44.5 22 L45 20" stroke="#4c1d95" stroke-width="1.3" stroke-linecap="round"/><path d="M47 22.5 L48 20.5" stroke="#4c1d95" stroke-width="1.3" stroke-linecap="round"/><path d="M49.5 23.5 L51 21.5" stroke="#4c1d95" stroke-width="1.3" stroke-linecap="round"/><ellipse cx="21" cy="34" rx="5" ry="3.5" fill="#fca5a5" opacity="0.72"/><ellipse cx="59" cy="34" rx="5" ry="3.5" fill="#fca5a5" opacity="0.72"/><path d="M34 39 Q40 44 46 39" stroke="#be185d" stroke-width="2" stroke-linecap="round" fill="none"/></svg>`;
+  }
 
-  /* シワ（高齢のみ） */
-  const wrinkles = (isOld||isVOld) ? `
-    <path d="M19.5 20.5 Q18.5 19 19 18" stroke="#cbd5e1" stroke-width=".9" stroke-linecap="round"/>
-    <path d="M32.5 20.5 Q33.5 19 33 18" stroke="#cbd5e1" stroke-width=".9" stroke-linecap="round"/>
-    <path d="M23 24 Q24 25.5 26 25.5 Q28 25.5 29 24" stroke="#cbd5e1" stroke-width=".8" stroke-linecap="round" fill="none"/>` : '';
+  if(isAdult && !isF) {
+    /* 成人・男 */
+    return `<svg width="${s}" height="${s}" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="18" fill="#e0f2fe"/><path d="M8 80 Q11 58 40 54 Q69 58 72 80Z" fill="#1e3a5f"/><path d="M32 54 L36 64 M48 54 L44 64" stroke="#e2e8f0" stroke-width="2" stroke-linecap="round"/><polygon points="40,54 36.5,62 40,73 43.5,62" fill="#ef4444"/><circle cx="40" cy="30" r="20" fill="#fde68a"/><path d="M20 27 Q21 8 40 7 Q59 8 60 27" fill="#78350f"/><path d="M20 27 Q19 15 23 11" fill="#5c2d00"/><path d="M23 11 Q28 7 33 11" fill="#5c2d00"/><path d="M33 9 Q38 5 43 9" fill="#5c2d00"/><path d="M43 9 Q48 6 53 11" fill="#5c2d00"/><path d="M53 11 Q58 14 60 20" fill="#5c2d00"/><path d="M20 20 Q22 14 25 17" stroke="#78350f" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M60 20 Q58 14 55 17" stroke="#78350f" stroke-width="3" stroke-linecap="round" fill="none"/><ellipse cx="20" cy="31" rx="3" ry="4" fill="#fde68a"/><ellipse cx="60" cy="31" rx="3" ry="4" fill="#fde68a"/><ellipse cx="31" cy="29" rx="5" ry="5" fill="white"/><ellipse cx="49" cy="29" rx="5" ry="5" fill="white"/><ellipse cx="31" cy="30" rx="3.2" ry="3.3" fill="#1e3a5f"/><ellipse cx="49" cy="30" rx="3.2" ry="3.3" fill="#1e3a5f"/><circle cx="33" cy="28.5" r="1.3" fill="white"/><circle cx="51" cy="28.5" r="1.3" fill="white"/><path d="M25 23 Q31 20 37 22.5" stroke="#78350f" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M43 22.5 Q49 20 55 23" stroke="#78350f" stroke-width="2.5" stroke-linecap="round" fill="none"/><ellipse cx="22" cy="34" rx="4" ry="3" fill="#fca5a5" opacity="0.35"/><ellipse cx="58" cy="34" rx="4" ry="3" fill="#fca5a5" opacity="0.35"/><path d="M34 39 Q40 42.5 46 39" stroke="#92400e" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>`;
+  }
 
-  /* 髪型（男性） */
-  const hairMale = isYoung
-    ? `<path d="M19 16 Q26 10 33 16" fill="${hair}"/>`
-    : isMid
-      ? `<path d="M18.5 15 Q26 10 33.5 15" fill="${hair}"/><path d="M21 15.5 Q24 13 26 13.5 Q28 13 31 15.5" fill="#c7d2fe" opacity=".5"/>`
-      : `<path d="M18.5 15 Q26 9 33.5 15" fill="${hair}"/><path d="M20 15 Q23 12 26 12.5 Q29 12 32 15" fill="#fff" opacity=".7"/>`;
+  if(isAdult && isF) {
+    /* 成人・女 */
+    return `<svg width="${s}" height="${s}" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="18" fill="#fdf4ff"/><path d="M20 30 Q16 50 18 72" stroke="#92400e" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M60 30 Q64 50 62 72" stroke="#92400e" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M8 80 Q11 58 40 54 Q69 58 72 80Z" fill="#c084fc"/><path d="M24 61 Q40 67 56 61" stroke="#a855f7" stroke-width="2" fill="none"/><path d="M20 26 Q22 10 40 9 Q58 10 60 26" fill="#92400e"/><path d="M22 26 Q25 16 30 19" fill="#92400e"/><path d="M58 26 Q55 16 50 19" fill="#92400e"/><circle cx="40" cy="30" r="19" fill="#fde68a"/><ellipse cx="30" cy="28" rx="5.5" ry="6" fill="white"/><ellipse cx="50" cy="28" rx="5.5" ry="6" fill="white"/><ellipse cx="30" cy="29.5" rx="3.6" ry="4" fill="#581c87"/><ellipse cx="50" cy="29.5" rx="3.6" ry="4" fill="#581c87"/><circle cx="32" cy="27.5" r="1.4" fill="white"/><circle cx="52" cy="27.5" r="1.4" fill="white"/><path d="M24 22.5 L22.5 20.5" stroke="#3b0764" stroke-width="1.5" stroke-linecap="round"/><path d="M26.5 21.5 L26 19" stroke="#3b0764" stroke-width="1.5" stroke-linecap="round"/><path d="M29 21 L29 18.5" stroke="#3b0764" stroke-width="1.5" stroke-linecap="round"/><path d="M44 21 L44 18.5" stroke="#3b0764" stroke-width="1.5" stroke-linecap="round"/><path d="M46.5 21.5 L47 19" stroke="#3b0764" stroke-width="1.5" stroke-linecap="round"/><path d="M49 22.5 L50.5 20.5" stroke="#3b0764" stroke-width="1.5" stroke-linecap="round"/><path d="M24 21 Q30 18 36 20.5" stroke="#92400e" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M44 20.5 Q50 18 56 21" stroke="#92400e" stroke-width="1.8" stroke-linecap="round" fill="none"/><ellipse cx="20.5" cy="33" rx="5" ry="3.5" fill="#fca5a5" opacity="0.65"/><ellipse cx="59.5" cy="33" rx="5" ry="3.5" fill="#fca5a5" opacity="0.65"/><path d="M34 38 Q40 43 46 38" stroke="#be185d" stroke-width="2" stroke-linecap="round" fill="none"/></svg>`;
+  }
 
-  /* 髪型（女性）*/
-  const hairFemale = isYoung
-    ? `<path d="M18 15 Q20 8 26 9 Q32 8 34 15" fill="${hair}"/>
-       <path d="M18 15 Q17 20 19 23" stroke="${hair}" stroke-width="2.5" stroke-linecap="round"/>
-       <path d="M34 15 Q35 20 33 23" stroke="${hair}" stroke-width="2.5" stroke-linecap="round"/>`
-    : isMid
-      ? `<path d="M18 14 Q20 7 26 8 Q32 7 34 14" fill="${hair}"/>
-         <path d="M18 14 Q17.5 19 20 23" stroke="${hair}" stroke-width="2.2" stroke-linecap="round"/>
-         <path d="M34 14 Q34.5 19 32 23" stroke="${hair}" stroke-width="2.2" stroke-linecap="round"/>`
-      : `<path d="M18 14 Q20 7 26 8 Q32 7 34 14" fill="${hair}"/>
-         <path d="M18 14 Q17 19 19.5 23" stroke="${hair}" stroke-width="2.5" stroke-linecap="round"/>
-         <path d="M34 14 Q35 19 32.5 23" stroke="${hair}" stroke-width="2.5" stroke-linecap="round"/>`;
+  if(isOld && !isF) {
+    /* 高齢・男 */
+    return `<svg width="${s}" height="${s}" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="18" fill="#f1f5f9"/><path d="M8 80 Q11 58 40 54 Q69 58 72 80Z" fill="#475569"/><path d="M32 54 L36 64 M48 54 L44 64" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/><path d="M57 58 Q63 68 61 78" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M54 56 Q58 54 62 57" stroke="#94a3b8" stroke-width="3" stroke-linecap="round" fill="none"/><circle cx="40" cy="30" r="20" fill="#fde68a"/><path d="M20 27 Q22 12 40 11 Q58 12 60 27 Q57 18 50 14 Q44 11 40 11 Q36 11 30 14 Q23 18 20 27Z" fill="#cbd5e1"/><ellipse cx="40" cy="17" rx="10" ry="7" fill="#f8fafc" opacity="0.8"/><ellipse cx="20" cy="31" rx="3" ry="4" fill="#fde68a"/><ellipse cx="60" cy="31" rx="3" ry="4" fill="#fde68a"/><path d="M25 28 Q31 24.5 37 28 Q31 31 25 28Z" fill="#1e293b"/><path d="M43 28 Q49 24.5 55 28 Q49 31 43 28Z" fill="#1e293b"/><circle cx="31" cy="27.5" r="1" fill="white"/><circle cx="49" cy="27.5" r="1" fill="white"/><path d="M25 22.5 Q31 20 37 22.5" stroke="#cbd5e1" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M43 22.5 Q49 20 55 22.5" stroke="#cbd5e1" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M22 30 Q20 33 21 36" stroke="#d97706" stroke-width="1" fill="none" opacity="0.5"/><path d="M58 30 Q60 33 59 36" stroke="#d97706" stroke-width="1" fill="none" opacity="0.5"/><ellipse cx="22" cy="34" rx="5" ry="3" fill="#fca5a5" opacity="0.3"/><ellipse cx="58" cy="34" rx="5" ry="3" fill="#fca5a5" opacity="0.3"/><path d="M33 39 Q40 37.5 47 39" stroke="#92400e" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M33 42 Q37 44.5 40 44 Q43 44.5 47 42" stroke="#e2e8f0" stroke-width="1.5" fill="none"/></svg>`;
+  }
 
-  /* 杖（高齢のみ）*/
-  const cane = isOld
-    ? `<line x1="32" y1="31" x2="35" y2="44" stroke="${isFemale?'#7e22ce':'#475569'}" stroke-width="2" stroke-linecap="round"/>
-       <ellipse cx="35" cy="43.5" rx="2" ry="1.2" fill="${isFemale?'#7e22ce':'#475569'}" opacity=".5"/>`
-    : isVOld
-      ? `<line x1="32" y1="31" x2="36" y2="44" stroke="${isFemale?'#6d28d9':'#334155'}" stroke-width="2.2" stroke-linecap="round"/>
-         <line x1="20" y1="31" x2="16" y2="44" stroke="${isFemale?'#6d28d9':'#334155'}" stroke-width="2.2" stroke-linecap="round"/>
-         <ellipse cx="36" cy="43.5" rx="2" ry="1.2" fill="${isFemale?'#6d28d9':'#334155'}" opacity=".5"/>
-         <ellipse cx="16" cy="43.5" rx="2" ry="1.2" fill="${isFemale?'#6d28d9':'#334155'}" opacity=".5"/>` : '';
+  if(isOld && isF) {
+    /* 高齢・女 */
+    return `<svg width="${s}" height="${s}" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="18" fill="#fdf4ff"/><path d="M8 80 Q11 58 40 54 Q69 58 72 80Z" fill="#d8b4fe"/><path d="M22 63 Q40 69 58 63" stroke="#c084fc" stroke-width="2" fill="none"/><path d="M18 58 Q12 68 14 78" stroke="#c084fc" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M15 56 Q19 54 23 57" stroke="#c084fc" stroke-width="3" stroke-linecap="round" fill="none"/><circle cx="22" cy="16" r="8" fill="#f1f5f9"/><circle cx="32" cy="11" r="8" fill="#e2e8f0"/><circle cx="40" cy="10" r="8" fill="#f1f5f9"/><circle cx="48" cy="11" r="8" fill="#e2e8f0"/><circle cx="58" cy="16" r="8" fill="#f1f5f9"/><circle cx="20" cy="26" r="7" fill="#e2e8f0"/><circle cx="60" cy="26" r="7" fill="#f1f5f9"/><circle cx="40" cy="30" r="18" fill="#fde68a"/><path d="M26 28.5 Q32 24.5 38 28.5 Q32 32 26 28.5Z" fill="#581c87"/><path d="M42 28.5 Q48 24.5 54 28.5 Q48 32 42 28.5Z" fill="#581c87"/><circle cx="32" cy="27.5" r="1" fill="white"/><circle cx="48" cy="27.5" r="1" fill="white"/><path d="M25 22 Q32 19.5 38 22" stroke="#e2e8f0" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M42 22 Q48 19.5 55 22" stroke="#e2e8f0" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M23 31 Q21 34 22 37" stroke="#d97706" stroke-width="1" fill="none" opacity="0.45"/><path d="M57 31 Q59 34 58 37" stroke="#d97706" stroke-width="1" fill="none" opacity="0.45"/><ellipse cx="21" cy="34" rx="5.5" ry="3.5" fill="#fca5a5" opacity="0.5"/><ellipse cx="59" cy="34" rx="5.5" ry="3.5" fill="#fca5a5" opacity="0.5"/><path d="M33 38.5 Q40 43 47 38.5" stroke="#7e22ce" stroke-width="2" stroke-linecap="round" fill="none"/></svg>`;
+  }
 
-  /* ほほ赤み */
-  const cheeks = (isYoung||isFemale)
-    ? `<ellipse cx="22" cy="20.5" rx="1.6" ry=".9" fill="#fca5a5" opacity=".45"/>
-       <ellipse cx="30" cy="20.5" rx="1.6" ry=".9" fill="#fca5a5" opacity=".45"/>` : '';
+  if(isVOld && !isF) {
+    /* 超高齢・男 */
+    return `<svg width="${s}" height="${s}" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="18" fill="#f0fdf4"/><path d="M10 80 Q14 60 38 56 Q62 58 68 80Z" fill="#374151"/><path d="M54 55 Q62 65 60 78" stroke="#6b7280" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M50 53 Q55 50 60 53" stroke="#6b7280" stroke-width="3.5" stroke-linecap="round" fill="none"/><circle cx="38" cy="31" r="18" fill="#fde68a"/><path d="M22 28 Q23 14 38 13 Q53 14 54 28 Q52 20 46 16 Q41 13 38 13 Q35 13 30 16 Q24 20 22 28Z" fill="#f1f5f9"/><ellipse cx="38" cy="19" rx="11" ry="7" fill="#fde68a" opacity="0.9"/><ellipse cx="20" cy="32" rx="3.5" ry="5" fill="#fde68a"/><ellipse cx="56" cy="32" rx="3.5" ry="5" fill="#fde68a"/><path d="M27 22 Q32 20 37 22" stroke="#d97706" stroke-width="1" fill="none" opacity="0.6"/><path d="M29 25 Q33 23 37 25" stroke="#d97706" stroke-width="0.8" fill="none" opacity="0.5"/><path d="M39 22 Q44 20 49 22" stroke="#d97706" stroke-width="1" fill="none" opacity="0.6"/><path d="M24 30 Q30 27 36 30 Q30 33 24 30Z" fill="#1e293b"/><path d="M40 30 Q46 27 52 30 Q46 33 40 30Z" fill="#1e293b"/><circle cx="30" cy="29.5" r="0.8" fill="white"/><circle cx="46" cy="29.5" r="0.8" fill="white"/><path d="M23 24 Q29 22.5 35 25" stroke="#e2e8f0" stroke-width="2.8" stroke-linecap="round" fill="none"/><path d="M41 25 Q47 22.5 53 24" stroke="#e2e8f0" stroke-width="2.8" stroke-linecap="round" fill="none"/><path d="M21 31 Q19 35 20 39" stroke="#d97706" stroke-width="1.2" fill="none" opacity="0.6"/><path d="M55 31 Q57 35 56 39" stroke="#d97706" stroke-width="1.2" fill="none" opacity="0.6"/><path d="M30 40 Q33 44 34 47" stroke="#d97706" stroke-width="0.9" fill="none" opacity="0.4"/><path d="M46 40 Q43 44 42 47" stroke="#d97706" stroke-width="0.9" fill="none" opacity="0.4"/><ellipse cx="22" cy="35" rx="4" ry="3" fill="#fca5a5" opacity="0.2"/><ellipse cx="54" cy="35" rx="4" ry="3" fill="#fca5a5" opacity="0.2"/><path d="M31 41 Q38 39 45 41" stroke="#92400e" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M31 43 Q35 47 38 47 Q41 47 45 43" stroke="#e2e8f0" stroke-width="2" fill="none"/><path d="M33 47 Q36 52 38 51 Q40 52 43 47" stroke="#e2e8f0" stroke-width="1.5" fill="none"/></svg>`;
+  }
 
-  /* 口 */
-  const mouthColor = isFemale ? eye : '#475569';
+  if(isVOld && isF) {
+    /* 超高齢・女 */
+    return `<svg width="${s}" height="${s}" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="18" fill="#f0fdf4"/><path d="M10 80 Q14 60 40 56 Q62 58 68 80Z" fill="#6b7280"/><path d="M24 64 Q40 70 54 64" stroke="#9ca3af" stroke-width="2" fill="none"/><path d="M16 56 Q10 66 12 78" stroke="#9ca3af" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M13 54 Q18 52 22 55" stroke="#9ca3af" stroke-width="3.5" stroke-linecap="round" fill="none"/><circle cx="40" cy="31" r="18" fill="#fde68a"/><circle cx="21" cy="17" r="10" fill="#f8fafc"/><circle cx="31" cy="11" r="10" fill="#f1f5f9"/><circle cx="40" cy="10" r="10" fill="#f8fafc"/><circle cx="49" cy="11" r="10" fill="#f1f5f9"/><circle cx="59" cy="17" r="10" fill="#f8fafc"/><circle cx="19" cy="28" r="9" fill="#f1f5f9"/><circle cx="61" cy="28" r="9" fill="#f8fafc"/><circle cx="22" cy="37" r="7" fill="#f1f5f9"/><circle cx="58" cy="37" r="7" fill="#f8fafc"/><circle cx="40" cy="31" r="16" fill="#fde68a"/><path d="M29 23 Q34 21 39 23" stroke="#d97706" stroke-width="0.9" fill="none" opacity="0.55"/><path d="M31 26 Q35 24.5 39 26" stroke="#d97706" stroke-width="0.8" fill="none" opacity="0.45"/><path d="M41 23 Q46 21 51 23" stroke="#d97706" stroke-width="0.9" fill="none" opacity="0.55"/><path d="M27 29.5 Q33 26.5 39 29.5 Q33 32.5 27 29.5Z" fill="#581c87"/><path d="M41 29.5 Q47 26.5 53 29.5 Q47 32.5 41 29.5Z" fill="#581c87"/><circle cx="33" cy="29" r="0.8" fill="white"/><circle cx="47" cy="29" r="0.8" fill="white"/><path d="M26 23.5 Q32 21.5 38 24" stroke="#e2e8f0" stroke-width="2.8" stroke-linecap="round" fill="none"/><path d="M42 24 Q48 21.5 54 23.5" stroke="#e2e8f0" stroke-width="2.8" stroke-linecap="round" fill="none"/><path d="M24 31 Q22 35 23 38" stroke="#d97706" stroke-width="1.1" fill="none" opacity="0.55"/><path d="M56 31 Q58 35 57 38" stroke="#d97706" stroke-width="1.1" fill="none" opacity="0.55"/><path d="M29 36 Q27 40 28 43" stroke="#d97706" stroke-width="0.9" fill="none" opacity="0.4"/><path d="M51 36 Q53 40 52 43" stroke="#d97706" stroke-width="0.9" fill="none" opacity="0.4"/><ellipse cx="23" cy="34" rx="5" ry="3.5" fill="#fca5a5" opacity="0.22"/><ellipse cx="57" cy="34" rx="5" ry="3.5" fill="#fca5a5" opacity="0.22"/><path d="M32 40 Q40 38 48 40" stroke="#7e22ce" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>`;
+  }
 
-  /* 体（服） */
-  const bodyRect = `<rect x="20" y="33" width="12" height="11" rx="2" fill="${body}"/>`;
-
-  return `<svg width="${size}" height="${size}" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="52" height="52" rx="12" fill="${bg}"/>
-  <ellipse cx="26" cy="18.5" rx="7.5" ry="8" fill="${skin}"/>
-  <ellipse cx="26" cy="26" rx="7.5" ry="3" fill="${skin}"/>
-  ${isFemale ? hairFemale : hairMale}
-  <ellipse cx="22.5" cy="18.2" rx="1.3" ry="1.4" fill="${eye}"/>
-  <ellipse cx="29.5" cy="18.2" rx="1.3" ry="1.4" fill="${eye}"/>
-  <circle cx="22.5" cy="17.9" r=".5" fill="#fff"/>
-  <circle cx="29.5" cy="17.9" r=".5" fill="#fff"/>
-  <path d="M21 16.5 Q26 15 31 16.5" stroke="${eye}" stroke-width="1.1" fill="none" stroke-linecap="round"/>
-  <path d="M23.5 22 Q26 24 28.5 22" stroke="${mouthColor}" stroke-width="1.1" stroke-linecap="round" fill="none"/>
-  ${cheeks}
-  ${wrinkles}
-  ${bodyRect}
-  <path d="M14 47c0-6.63 5.37-12 12-12s12 5.37 12 12" stroke="${isFemale?eye:bodyM}" stroke-width="2.2" stroke-linecap="round"/>
-  ${cane}
-  </svg>`;
+  /* 不明 */
+  return `<svg width="${s}" height="${s}" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="18" fill="#f8fafc"/><path d="M8 80 Q11 58 40 54 Q69 58 72 80Z" fill="#cbd5e1"/><circle cx="40" cy="30" r="20" fill="#e2e8f0"/><ellipse cx="31" cy="29" rx="5" ry="5.5" fill="white"/><ellipse cx="49" cy="29" rx="5" ry="5.5" fill="white"/><ellipse cx="31" cy="30" rx="3.2" ry="3.5" fill="#94a3b8"/><ellipse cx="49" cy="30" rx="3.2" ry="3.5" fill="#94a3b8"/><circle cx="33" cy="28.5" r="1.3" fill="white"/><circle cx="51" cy="28.5" r="1.3" fill="white"/><path d="M34 39 Q40 38 46 39" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" fill="none"/><text x="40" y="18" text-anchor="middle" font-size="13" fill="#94a3b8" font-weight="700">?</text></svg>`;
 }
+
 
 /* 緊急度から患者ブロック背景スタイルを返す */
 function urgBgStyle(urgency) {
@@ -405,7 +372,7 @@ const S = {
   selPt: null,
   sheet: false, shPid: null, shAct: null, shActs: [], shMen: [], shMemo: '', shVitals: {sbp:'',dbp:'',hr:'',spo2:'',temp:'',gcs:''}, editingPostId: null,
   ptTab: '全患者', showUnread: null, selectingPatient: false, selectedPtId: null, _submitting: false,
-  _adminTab: 'register', _staffList: [],
+  _adminTab: 'register', _staffList: [], _expandedMentions: {},
   nf: {complaint:'',complaintOther:'',age:'',sex:'',arrivalTime:'',urgency:'',jcs:'',jcsNote:'',transport:'',procs:[],tags:[],ndepts:['ERスタッフ','当直医'],chartId:''},
   /* ローカルキャッシュ（Supabaseから取得） */
   patients: [],
@@ -467,6 +434,16 @@ function subscribeRealtime() {
       else if(status === 'CHANNEL_ERROR') { updateRtStatus('offline'); scheduleReconnect(); }
       else updateRtStatus('connecting');
     });
+}
+
+/* @部署タグの展開・折りたたみ */
+function toggleMentions(e, postId) {
+  if(e && e.stopPropagation) e.stopPropagation();
+  const pid = postId || (e && e.target && e.target.dataset && e.target.dataset.pid);
+  if(!pid) return;
+  if(!S._expandedMentions) S._expandedMentions = {};
+  S._expandedMentions[pid] = !S._expandedMentions[pid];
+  render();
 }
 
 /* 手動リロード */
@@ -1086,7 +1063,7 @@ function feedCard(p) {
   const abbr     = roleAbbr(p.dept||'', p.posted_by||'');
   const pt       = S.patients.find(function(q){ return q.id === p.patient_id; }) || {};
   const ptName   = pt.age ? (pt.age + (pt.sex||'') + ' · ' + (pt.complaint||'')) : '#' + String(p.patient_id).slice(-3);
-  const icon     = ptIcon(pt.age||'40', pt.sex||'不明', 40);
+  const icon     = ptIcon(pt.age||'40', pt.sex||'不明', 44);
   const bgStyle  = urgBgStyle(pt.urgency);
   const isCPA    = pt.complaint === 'CPA';
   /* 患者選択モード */
@@ -1098,7 +1075,26 @@ function feedCard(p) {
   const urgLabel = (!isCPA && pt.urgency) ? '<span style="font-size:10px;font-weight:600;border-radius:4px;padding:2px 7px;' + (pt.urgency==='最優先'?'background:#fee2e2;color:#991b1b;':pt.urgency==='緊急'?'background:#fff8ee;color:#b35c00;':pt.urgency==='準緊急'?'background:#fffbe6;color:#7a5c00;':'background:#dcfce7;color:#166534;') + '">' + pt.urgency + '</span>' : '';
   const stLabel  = pt.status ? '<span style="font-size:10px;border-radius:4px;padding:2px 6px;font-weight:500;' + statusBgStyle(pt.status) + '">' + statusLabel(pt.status) + '</span>' : '';
   const checkMark = isSelected ? '<div style="width:20px;height:20px;border-radius:50%;background:#007aff;display:flex;align-items:center;justify-content:center;margin-top:2px;"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' : '';
-  const bodyMentions = (p.mentions||[]).map(function(m){ return '<span class="mention">@' + m + '</span> '; }).join('');
+  /* @部署タグ：2件以上なら「他N件▾」で折りたたみ */
+  const mentionTags = (p.mentions||[]);
+  const postId = p.id;
+  const isExpanded = S._expandedMentions && S._expandedMentions[postId];
+  let mentionHtml = '';
+  if(mentionTags.length > 0) {
+    const MAX_SHOW = 2;
+    if(mentionTags.length <= MAX_SHOW || isExpanded) {
+      mentionHtml = '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:4px;">'
+        + mentionTags.map(function(m){ return '<span style="font-size:11px;color:#007aff;background:#eff6ff;border-radius:5px;padding:2px 7px;white-space:nowrap;">@'+m+'</span>'; }).join('')
+        + (isExpanded && mentionTags.length > MAX_SHOW ? '<span style="font-size:11px;color:#6b7280;cursor:pointer;padding:2px 6px;" data-pid="'+postId+'" onclick="S._expandedMentions[this.dataset.pid]=false;render()">▴ 閉じる</span>' : '')
+        + '</div>';
+    } else {
+      mentionHtml = '<div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap;overflow:hidden;margin-bottom:4px;">'
+        + mentionTags.slice(0, MAX_SHOW).map(function(m){ return '<span style="font-size:11px;color:#007aff;background:#eff6ff;border-radius:5px;padding:2px 7px;white-space:nowrap;flex-shrink:0;">@'+m+'</span>'; }).join('')
+        + '<span style="font-size:11px;color:#6b7280;background:#f3f4f6;border-radius:5px;padding:2px 7px;white-space:nowrap;flex-shrink:0;cursor:pointer;border:0.5px solid #e5e7eb;" data-pid="'+postId+'" onclick="if(!S._expandedMentions)S._expandedMentions={};S._expandedMentions[this.dataset.pid]=true;render()">他'+(mentionTags.length-MAX_SHOW)+'件 ▾</span>'
+        + '</div>';
+    }
+  }
+  const bodyMentions = '';
   const pid = esc(String(p.patient_id));
 
   /* CPA専用カード */
@@ -1149,7 +1145,7 @@ function feedCard(p) {
   h += '<div><div class="f-sender" style="font-size:13px;line-height:1.3;">' + esc(p.posted_by) + '</div><div class="f-time" style="font-size:11px;">' + elapsed(p.posted_at) + '</div></div>';
   h += '<span style="margin-left:auto;font-size:13px;font-weight:700;border-radius:8px;padding:4px 10px;white-space:nowrap;flex-shrink:0;' + actBadgeStyle(p.tag) + '">' + esc(p.tag) + '</span>';
   h += '</div>';
-  if(p.body) h += '<div style="font-size:14px;color:#1c1c1e;line-height:1.55;margin-top:2px;">' + bodyMentions + esc(p.body) + '</div>';
+  if(p.body || mentionHtml) h += mentionHtml + (p.body ? '<div style="font-size:15px;color:#1c1c1e;line-height:1.55;">' + esc(p.body) + '</div>' : '');
   if((p.mentions||[]).length) {
     h += buildAckHtml(p);
     if(ackedNames.length === 0) h += '<span class="warn" style="font-size:11px;display:block;margin-top:6px;">⚠ 未確認 ' + elapsed(p.posted_at) + '</span>';
@@ -1198,8 +1194,12 @@ function ptCard(pt) {
     <div style="${bgStyle}border-radius:9px;padding:8px 10px;margin-bottom:8px;display:flex;align-items:center;gap:9px;">
       ${icon}
       <div style="flex:1;min-width:0;">
-        ${idBadge}
-        <div style="font-size:14px;font-weight:700;color:${isDone?'#6b7280':'#1c1c1e'};line-height:1.25;">${esc(pt.age)}${esc(pt.sex)} · ${esc(pt.complaint)}</div>
+        <div style="font-size:16px;font-weight:700;color:${isDone?'#6b7280':'#1c1c1e'};line-height:1.2;margin-bottom:3px;">${esc(pt.complaint)}</div>
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+          ${idBadge}
+          <span style="font-size:12px;color:#6b7280;">${esc(pt.age)}${esc(pt.sex)}</span>
+          ${pt.created_at ? '<span style="font-size:11px;color:#9ca3af;">· ' + (function(){const m=Math.round((Date.now()-new Date(pt.created_at).getTime())/60000);return m<60?m+'分経過':Math.floor(m/60)+'時間経過';})() + '</span>' : ''}
+        </div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;">
         ${urgLabel}
